@@ -1,3 +1,12 @@
+## Welcome to my Art Shop!! 🩷 [Under Construction... 🛠️]
+
+This is a cozy, gamefied website created to market my art to customers. This will (hopefully) be an interactive web app, that makes the user feel like they are stepping into a physical shop. They can interact with items around them, discover secret surprises, pet cute animals, and (of course) view and purchase my artwork. I'm creating this website with Next.js, Tailwindcss, and Stripe!
+
+Here is a quick sketch of the layout, something that will continue to be refined and rendered:
+<img width="3072" height="1920" alt="shop" src="https://github.com/user-attachments/assets/f7f5a690-5908-40ae-b4f2-882df07cd33b" />
+
+
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
