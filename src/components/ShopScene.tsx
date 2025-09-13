@@ -4,14 +4,16 @@ export default function ShopScene() {
     return (
         <main>
             <div className="absolute w-full h-full overflow-hidden flex flex-col items-center justify-end p-8">
-                <img src={"/images/border.png"} alt={"border"} className="absolute object-contain" style={{top: `0%`, maxWidth: `90%`}}/>
-                <img src={"/images/decor.png"} alt={"decor"} className="absolute object-contain" style={{top: `0%`, maxWidth: `90%`}}/>
-                <ShopItem label="Person" imgSrc="/images/person.png" width={50} positionX={60} positionY={35}/>
-                <ShopItem label="Item 1" imgSrc="/images/item1.png" width={40} positionX={35} positionY={75}/>
-                <ShopItem label="Item 2" imgSrc="/images/item2.png" width={90} positionX={85} positionY={45}/>
-                <ShopItem label="Counter" imgSrc="/images/counter.png" width={90} positionX={50} positionY={63}/>
-                <ShopItem label="Cat" imgSrc="/images/item3.png" width={90} positionX={50} positionY={45}/>
+                <ShopItem label="Frog" imgSrc="/images/frog.png" width={51} positionX={56} positionY={37}/>
+                <ShopItem label="Drawings" imgSrc="/images/drawings.png" width={100} positionX={85} positionY={50}/>
+                <ShopItem label="Notes" imgSrc="/images/notes.png" width={30} positionX={73} positionY={35}/>
+                <ShopItem label="Buy" imgSrc="/images/pay.png" width={45} positionX={65} positionY={42}/>
                 <ShopItem label="Cart" imgSrc="/images/cart.png" width={75} positionX={55} positionY={92}/>
+                <ShopItem label="Plants" imgSrc="/images/plants.png" width={45} positionX={40} positionY={42}/>
+                <ShopItem label="Shelf" imgSrc="/images/shelf.png" width={50} positionX={28} positionY={65}/>
+                <ShopItem label="Gumball" imgSrc="/images/gumball.png" width={40} positionX={22} positionY={82}/>
+                <ShopItem label="Lights" imgSrc="/images/light1.png" width={50} positionX={30} positionY={10}/>
+                <ShopItem label="Light" imgSrc="/images/light2.png" width={50} positionX={85} positionY={5}/>
             </div>
         </main>
     )
