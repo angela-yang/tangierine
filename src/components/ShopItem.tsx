@@ -1,15 +1,16 @@
 type ShopItemProps = {
-  label: string
-  imgSrc: string
-  width: number
-  positionX: number
-  positionY: number
+  label: string;
+  imgSrc: string;
+  width: number;
+  positionX: number;
+  positionY: number;
+  className?: string;
 }
 
-export default function ShopItem({ label, imgSrc, width, positionX, positionY }: ShopItemProps) {
+export default function ShopItem({ label, imgSrc, width, positionX, positionY, className }: ShopItemProps) {
     return (
         <div
-            className={`absolute cursor-pointer transition-transform hover:scale-105 -translate-x-1/2 -translate-y-1/2`}
+            className={`absolute cursor-pointer transition-transform hover:scale-105 -translate-x-1/2 -translate-y-1/2 ${className}`}
             style={{ left: `${positionX}%`, top: `${positionY}%` }}
         >
             {imgSrc ? (
