@@ -9,7 +9,7 @@ Here is a quick sketch of the layout, something that is still to be refined:
 ## Currently Working On...
 My next steps will be to actually implement the functionality of the web app. I want customers to be able to create an account/profile and keep track of items in their cart/what they have already purchased. I also want to create a chat feature so customers can directly communicate with me. 
 
-As for design, I hope to improve the UI so that the images scale the same and stay in the same positions no matter the dimension of the screen/device it is displayed on. I will also add more items, ways to explore/interact, and hidden surprises!!
+As for design, I hope to improve the UI so that the images scale the same and stay in the same positions no matter the dimension of the screen/device it is displayed on. I will add a parallax effect, so when the user moves their cursor, the items move in a way that looks like the user is turning. I will also add more items, ways to explore/interact, and hidden surprises!!
 
 ## Getting Started
 
