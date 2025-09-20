@@ -67,16 +67,17 @@ export default function ShopScene() {
             <ShopItem label="Counter" imgSrc="/images/counter.png" width={90} positionX={51} positionY={60} offsetX={offset.x} offsetY={offset.y} depthX={0.5} depthY={0.6}/>
 
             <div
-                className={`absolute transition-transform  -translate-x-1/2 -translate-y-1/2`}
+                className="absolute left-1/2 top-0 -translate-x-1/2"
                 style={{
-                    left: `calc(${62}% + ${offset.x * 0.8}px)`,
-                    top: `calc(${39}% + ${offset.y * 0.5}px)`,
+                    width: "auto",
+                    height: "78vh",
+                    transform: `translateX(38%) translate(${offset.x * 0.8}px, ${offset.y * 0.5}px)`,
                 }}
-                ><img
-                    src={"/images/tree.png"}
-                    alt={"Tree"}
-                    className="object-contain"
-                    style={{ maxWidth: `135%` }}
+                >
+                <img
+                    src="/images/tree.png"
+                    alt="Tree"
+                    className="w-auto h-full object-cover"
                 />
             </div>
 
