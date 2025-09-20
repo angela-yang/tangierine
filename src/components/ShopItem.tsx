@@ -1,12 +1,12 @@
 type ShopItemProps = {
   label: string;
   imgSrc: string;
-  width: number; // stays % for responsiveness
+  width: number;
   positionX: number;
   positionY: number;
   className?: string;
-  offsetX?: number; // for parallax
-  offsetY?: number; // for parallax
+  offsetX?: number;
+  offsetY?: number;
 };
 
 export default function ShopItem({

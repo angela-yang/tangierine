@@ -19,15 +19,28 @@ export default function ShopScene() {
     }, []);
 
     return (
-        <main className="relative w-full h-screen overflow-hidden">
+        <main className="relative w-full h-screen object-cover overflow-hidden">
         <div className="absolute w-full h-full">
+            <div
+                className={`absolute transition-transform  -translate-x-1/2 -translate-y-1/2`}
+                style={{
+                    left: `calc(${28}% + ${offset.x}px)`,
+                    top: `calc(${70}% + ${offset.y}px)`,
+                }}
+                ><img
+                    src={"/images/floor.png"}
+                    alt={"Floor"}
+                    className="object-contain"
+                    style={{ maxWidth: `155%` }}
+                />
+            </div>
             <Link href="/commission" className="group">
             <ShopItem
                 label="Frog"
                 imgSrc="/images/frog.png"
-                width={51}
-                positionX={56}
-                positionY={37}
+                width={45}
+                positionX={57}
+                positionY={45}
                 offsetX={offset.x}
                 offsetY={offset.y}
                 className="transition-opacity duration-300 group-hover:opacity-60"
@@ -39,6 +52,9 @@ export default function ShopScene() {
                 Place a <br /> Commission
             </span>
             </Link>
+
+            <ShopItem label="Counter" imgSrc="/images/counter.png" width={90} positionX={51} positionY={60} offsetX={offset.x} offsetY={offset.y}/>
+            <ShopItem label="Tree" imgSrc="/images/tree.png" width={135} positionX={62} positionY={42} offsetX={offset.x} offsetY={offset.y}/>
 
             <Link href="/shop" className="group">
             <ShopItem
