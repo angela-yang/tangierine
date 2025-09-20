@@ -19,21 +19,30 @@ export default function ShopScene() {
     }, []);
 
     return (
-        <main className="relative w-full h-screen object-cover overflow-hidden">
+        <main>
         <div className="absolute w-full h-full">
             <div
-                className={`absolute transition-transform  -translate-x-1/2 -translate-y-1/2`}
+                className={`absolute transition-transform -translate-x-1/2 -translate-y-1/2`}
                 style={{
-                    left: `calc(${28}% + ${offset.x}px)`,
-                    top: `calc(${70}% + ${offset.y}px)`,
+                    left: `calc(${29}% + ${offset.x * 0.9}px)`,
+                    top: `calc(${80}% + ${offset.y * 1.2}px)`,
                 }}
                 ><img
                     src={"/images/floor.png"}
                     alt={"Floor"}
                     className="object-contain"
-                    style={{ maxWidth: `155%` }}
+                    style={{ maxWidth: `160%` }}
                 />
             </div>
+
+            <div className="absolute top-0 left-0 z-0">
+                <img
+                    src="/images/border.png"
+                    alt="Border"
+                    className="w-screen h-screen"
+                />
+            </div>
+
             <Link href="/commission" className="group">
             <ShopItem
                 label="Frog"
@@ -43,6 +52,8 @@ export default function ShopScene() {
                 positionY={45}
                 offsetX={offset.x}
                 offsetY={offset.y}
+                depthX={0.4}
+                depthY={0.4}
                 className="transition-opacity duration-300 group-hover:opacity-60"
             />
             <span
@@ -53,8 +64,23 @@ export default function ShopScene() {
             </span>
             </Link>
 
-            <ShopItem label="Counter" imgSrc="/images/counter.png" width={90} positionX={51} positionY={60} offsetX={offset.x} offsetY={offset.y}/>
-            <ShopItem label="Tree" imgSrc="/images/tree.png" width={135} positionX={62} positionY={42} offsetX={offset.x} offsetY={offset.y}/>
+            <ShopItem label="Counter" imgSrc="/images/counter.png" width={90} positionX={51} positionY={60} offsetX={offset.x} offsetY={offset.y} depthX={0.5} depthY={0.6}/>
+
+            <div
+                className={`absolute transition-transform  -translate-x-1/2 -translate-y-1/2`}
+                style={{
+                    left: `calc(${62}% + ${offset.x * 0.8}px)`,
+                    top: `calc(${39}% + ${offset.y * 0.5}px)`,
+                }}
+                ><img
+                    src={"/images/tree.png"}
+                    alt={"Tree"}
+                    className="object-contain"
+                    style={{ maxWidth: `135%` }}
+                />
+            </div>
+
+            <ShopItem label="Welcome" imgSrc="/images/welcome.png" width={50} positionX={76} positionY={72} offsetX={offset.x} offsetY={offset.y} depthX={0.8} depthY={0.7}/>
 
             <Link href="/shop" className="group">
             <ShopItem
@@ -66,6 +92,8 @@ export default function ShopScene() {
                 offsetX={offset.x}
                 offsetY={offset.y}
                 className="transition-opacity duration-300 group-hover:opacity-60"
+                depthX={0.9}
+                depthY={0.5}
             />
             <span
                 className="absolute z-10 flex items-center justify-center text-xl font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
@@ -75,8 +103,8 @@ export default function ShopScene() {
             </span>
             </Link>
 
-            <ShopItem label="Notes" imgSrc="/images/notes.png" width={30} positionX={73} positionY={35} offsetX={offset.x} offsetY={offset.y}/>
-            <ShopItem label="Buy" imgSrc="/images/pay.png" width={45} positionX={65} positionY={42} offsetX={offset.x} offsetY={offset.y}/>
+            <ShopItem label="Notes" imgSrc="/images/notes.png" width={30} positionX={73} positionY={35} offsetX={offset.x} offsetY={offset.y} depthX={0.7} depthY={0.5}/>
+            <ShopItem label="Buy" imgSrc="/images/pay.png" width={45} positionX={65} positionY={42} offsetX={offset.x} offsetY={offset.y} depthX={0.9} depthY={0.7}/>
             
             <Link href="/cart" className="group">
             <ShopItem
@@ -84,9 +112,11 @@ export default function ShopScene() {
                 imgSrc="/images/cart.png"
                 width={75}
                 positionX={55}
-                positionY={92}
+                positionY={94}
                 offsetX={offset.x}
                 offsetY={offset.y}
+                depthX={1.2}
+                depthY={1.3}
                 className="transition-opacity duration-300 group-hover:opacity-60"
             />
             <span
@@ -97,11 +127,11 @@ export default function ShopScene() {
             </span>
             </Link>
 
-            <ShopItem label="Plants" imgSrc="/images/plants.png" width={45} positionX={40} positionY={42} offsetX={offset.x} offsetY={offset.y}/>
-            <ShopItem label="Shelf" imgSrc="/images/shelf.png" width={50} positionX={28} positionY={65} offsetX={offset.x} offsetY={offset.y}/>
-            <ShopItem label="Gumball" imgSrc="/images/gumball.png" width={40} positionX={22} positionY={82} offsetX={offset.x} offsetY={offset.y}/>
-            <ShopItem label="Lights" imgSrc="/images/light1.png" width={50} positionX={30} positionY={10} offsetX={offset.x} offsetY={offset.y}/>
-            <ShopItem label="Light" imgSrc="/images/light2.png" width={50} positionX={85} positionY={5} offsetX={offset.x} offsetY={offset.y}/>
+            <ShopItem label="Plants" imgSrc="/images/plants.png" width={45} positionX={40} positionY={42} offsetX={offset.x} offsetY={offset.y} depthX={0.9} depthY={0.7}/>
+            <ShopItem label="Shelf" imgSrc="/images/shelf.png" width={50} positionX={28} positionY={65} offsetX={offset.x} offsetY={offset.y} depthX={1} depthY={1}/>
+            <ShopItem label="Gumball" imgSrc="/images/gumball.png" width={40} positionX={22} positionY={82} offsetX={offset.x} offsetY={offset.y} depthX={1.2} depthY={1.3}/>
+            <ShopItem label="Lights" imgSrc="/images/light1.png" width={50} positionX={30} positionY={10} offsetX={offset.x} offsetY={offset.y} depthX={1.2} depthY={1.5}/>
+            <ShopItem label="Light" imgSrc="/images/light2.png" width={50} positionX={85} positionY={5} offsetX={offset.x} offsetY={offset.y} depthX={1.2} depthY={1.5}/>
         </div>
         </main>
     );
