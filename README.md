@@ -1,13 +1,15 @@
 ## Welcome to my Art Shop!! 🩷 [Under Construction... 🛠️]
 
-This is a cozy, gamefied website created to market my art to customers. This will (hopefully) be an interactive web app, that makes the user feel like they are stepping into a physical shop. They can interact with items around them, discover secret surprises, pet cute animals, and (of course) view and purchase my artwork. I'm creating this website with Next.js, Tailwindcss, and Stripe!
+This is a cozy, gamefied website created to market my art to customers. This will (hopefully) be an interactive web app, that makes the user feel like they are stepping into a physical shop. They can interact with items around them, discover secret surprises, pet cute animals, and (of course) view and purchase my artwork. I'm creating this website with [Next.js](https://nextjs.org), Tailwindcss, and Stripe!
 
-Here is a quick sketch of the layout, something that will continue to be refined and rendered:
-<img width="3072" height="1920" alt="shop" src="https://github.com/user-attachments/assets/f7f5a690-5908-40ae-b4f2-882df07cd33b" />
+Here is a quick sketch of the layout, something that is still to be refined:
 
+<img width="1315" height="826" alt="image" src="https://github.com/user-attachments/assets/aae9a946-02dd-4a2e-ac8d-9779958bff52" />
 
+## Currently Working On...
+My next steps will be to actually implement the functionality of the web app. I want customers to be able to create an account/profile and keep track of items in their cart/what they have already purchased. I also want to create a chat feature so customers can directly communicate with me. 
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+As for design, I hope to improve the UI so that the images scale the same and stay in the same positions no matter the dimension of the screen/device it is displayed on. I will also add more items, ways to explore/interact, and hidden surprises!!
 
 ## Getting Started
 
