@@ -4,7 +4,8 @@ This is a cozy, gamefied website created to market my art to customers. This wil
 
 Here is a quick sketch of the layout, something that is still to be refined:
 
-<img width="1315" height="826" alt="image" src="https://github.com/user-attachments/assets/aae9a946-02dd-4a2e-ac8d-9779958bff52" />
+<img width="3072" height="1920" alt="Untitled_Artwork 40" src="https://github.com/user-attachments/assets/a9e4ed2f-e5b3-4699-9d29-45d36025b632" />
+
 
 ## Currently Working On...
 My next steps will be to actually implement the functionality of the web app. I want customers to be able to create an account/profile and keep track of items in their cart/what they have already purchased. I also want to create a chat feature so customers can directly communicate with me. 
