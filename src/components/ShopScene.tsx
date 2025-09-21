@@ -44,6 +44,8 @@ export default function ShopScene() {
                     />
                 </div>
 
+                <ShopItem label="Shelf" imgSrc="/images/shelf.png" width={50} positionX={28} positionY={65} offsetX={offset.x} offsetY={offset.y} depthX={1} depthY={1}/>
+
                 <Link href="/commission" className="group">
                     <ShopItem
                         label="Frog"
@@ -160,8 +162,28 @@ export default function ShopScene() {
 
                 <ShopItem label="Soot Sprites" imgSrc="/images/soot.png" width={60} positionX={84} positionY={81} offsetX={offset.x} offsetY={offset.y} depthX={0.9} depthY={0.7}/> 
                 <ShopItem label="Plants" imgSrc="/images/plants.png" width={45} positionX={40} positionY={42} offsetX={offset.x} offsetY={offset.y} depthX={0.9} depthY={0.7}/>
-                <ShopItem label="Shelf" imgSrc="/images/shelf.png" width={50} positionX={28} positionY={65} offsetX={offset.x} offsetY={offset.y} depthX={1} depthY={1}/>
-                <ShopItem label="Gumball" imgSrc="/images/gumball.png" width={40} positionX={22} positionY={82} offsetX={offset.x} offsetY={offset.y} depthX={1.2} depthY={1.3}/>
+
+                <Link href="/capsule" className="group">
+                    <ShopItem 
+                        label="Gumball" 
+                        imgSrc="/images/gumball.png" 
+                        width={40} 
+                        positionX={22} 
+                        positionY={82} 
+                        offsetX={offset.x} 
+                        offsetY={offset.y} 
+                        depthX={1.2} 
+                        depthY={1.3}
+                        className="transition-opacity duration-300 group-hover:opacity-60"
+                    />
+                    <span
+                        className="absolute z-10 flex items-center justify-center text-xl font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        style={{ left: `13%`, top: `75%` }}
+                    >
+                        Get a <br /> Capsule <br /> Toy!
+                    </span>
+                </Link>
+
                 <ShopItem label="Lights" imgSrc="/images/light1.png" width={50} positionX={30} positionY={8} offsetX={offset.x} offsetY={offset.y} depthX={1.2} depthY={1.5}/>
                 <ShopItem label="Light" imgSrc="/images/light2.png" width={50} positionX={85} positionY={5} offsetX={offset.x} offsetY={offset.y} depthX={1.2} depthY={1.5}/>
             </div>

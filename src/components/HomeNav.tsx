@@ -20,7 +20,7 @@ export default function HomeNav() {
                 setHovered(false);
             }}
         >
-            <button className="bg-[rgb(117,128,164)] text-white p-3 rounded-full shadow-lg hover:bg-[rgb(89,102,154)] transition cursor-pointer">
+            <button className="bg-[rgb(235,199,148)] text-[rgb(47,54,103)] p-3 rounded-full shadow-lg hover:bg-[rgb(89,102,154)] transition cursor-pointer">
                 <FaHome size={24} />
             </button>
 
