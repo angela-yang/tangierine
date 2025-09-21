@@ -68,7 +68,9 @@ export default function ShopScene() {
             <Dialogue
                 text="Hello!! Welcome to my art shop :) Feel free to look around..."
                 speed={40}
-                duration={10000}
+                duration={8000}
+                className="w-100"
+                style={{left: "40%", top: "15%",}}
             />
 
             <ShopItem label="Stars" imgSrc="/images/stars.png" width={35} positionX={22} positionY={22} offsetX={offset.x} offsetY={offset.y} depthX={0.3} depthY={0.6}/>
@@ -136,6 +138,7 @@ export default function ShopScene() {
             </span>
             </Link>
 
+            <ShopItem label="Soot Sprites" imgSrc="/images/soot.png" width={60} positionX={84} positionY={81} offsetX={offset.x} offsetY={offset.y} depthX={0.9} depthY={0.7}/> 
             <ShopItem label="Plants" imgSrc="/images/plants.png" width={45} positionX={40} positionY={42} offsetX={offset.x} offsetY={offset.y} depthX={0.9} depthY={0.7}/>
             <ShopItem label="Shelf" imgSrc="/images/shelf.png" width={50} positionX={28} positionY={65} offsetX={offset.x} offsetY={offset.y} depthX={1} depthY={1}/>
             <ShopItem label="Gumball" imgSrc="/images/gumball.png" width={40} positionX={22} positionY={82} offsetX={offset.x} offsetY={offset.y} depthX={1.2} depthY={1.3}/>

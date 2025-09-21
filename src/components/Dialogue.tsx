@@ -5,9 +5,11 @@ type DialogueProps = {
   text: string;
   speed?: number;
   duration?: number;
+  className?: string;
+  style?: React.CSSProperties;
 };
 
-export default function Dialogue({ text, speed = 50, duration }: DialogueProps) {
+export default function Dialogue({ text, speed = 50, duration, className, style }: DialogueProps) {
   const [displayed, setDisplayed] = useState("");
   const [visible, setVisible] = useState(true);
 
@@ -32,8 +34,8 @@ export default function Dialogue({ text, speed = 50, duration }: DialogueProps) 
 
   return (
     <div
-      className={`absolute bg-white/20 rounded-xl px-4 py-2 shadow-lg text-white text-lg max-w-xs z-20`}
-            style={{left: "40%", top: "12%",}}
+      className={`absolute bg-white/20 rounded-xl px-4 py-2 shadow-lg text-white text-lg max-w-xs z-20 ${className}`}
+      style={style}
     >
       {displayed}
       <span className="animate-pulse">{displayed.length < text.length ? "|" : ""}</span>
