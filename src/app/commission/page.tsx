@@ -1,6 +1,18 @@
+"use client";
+import React, { useState } from "react";
 import NavBar from "../../components/NavBar"
 
 export default function Commission() {
+  const [details, setDetails] = useState("");
+
+  const handleSubmit = async () => {
+    await fetch("/api/commission", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ details }),
+    });
+  };
+
   return (
     <div className="min-h-screen bg-indigo-200 pt-24">
       <NavBar />
@@ -10,9 +22,13 @@ export default function Commission() {
           <input type="text" placeholder="Your Name" className="border p-2 rounded-lg text-gray-500"/>
           <input type="email" placeholder="Your Email" className="border p-2 rounded-lg text-gray-500"/>
           <textarea placeholder="Describe your commission" className="border p-2 rounded-lg h-32 text-gray-500"/>
-          <button className="bg-indigo-300 text-gray-800 p-2 rounded-full hover:bg-indigo-200 transition-colors">
-            Submit
-          </button>
+          <div>
+            <textarea
+              value={details}
+              onChange={(e) => setDetails(e.target.value)}
+            />
+            <button className="bg-indigo-300 text-gray-800 p-2 rounded-full hover:bg-indigo-200 transition-colors" onClick={handleSubmit}>Submit</button>
+          </div>
         </form>
       </div>
     </div>

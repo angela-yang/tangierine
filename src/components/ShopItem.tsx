@@ -9,6 +9,7 @@ type ShopItemProps = {
   offsetY?: number;
   depthX?: number;
   depthY?: number;
+  onClick?: () => void;
 };
 
 export default function ShopItem({
@@ -22,17 +23,19 @@ export default function ShopItem({
     offsetY = 0,
     depthX = 1,
     depthY = 1,
+    onClick,
 }: ShopItemProps) {
     const parallaxX = offsetX * depthX;
     const parallaxY = offsetY * depthY;
 
     return (
         <div
-        className={`absolute cursor-pointer transition-transform hover:scale-105 -translate-x-1/2 -translate-y-1/2 ${className}`}
-        style={{
-            left: `calc(${positionX}% + ${parallaxX}px)`,
-            top: `calc(${positionY}% + ${parallaxY}px)`,
-        }}
+            className={`absolute cursor-pointer transition-transform hover:scale-105 -translate-x-1/2 -translate-y-1/2 ${className}`}
+            style={{
+                left: `calc(${positionX}% + ${parallaxX}px)`,
+                top: `calc(${positionY}% + ${parallaxY}px)`,
+            }}
+            onClick={onClick}
         >
         {imgSrc ? (
             <img

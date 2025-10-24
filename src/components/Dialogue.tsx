@@ -9,7 +9,7 @@ type DialogueProps = {
   style?: React.CSSProperties;
 };
 
-export default function Dialogue({ text, speed = 50, duration, className, style }: DialogueProps) {
+export default function Dialogue({ text, speed = 50, duration, className, style,}: DialogueProps) {
   const [displayed, setDisplayed] = useState("");
   const [visible, setVisible] = useState(true);
 
