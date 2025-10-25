@@ -110,7 +110,7 @@ export default function Profile() {
 
         <button
           onClick={handleLogout}
-          className="w-full py-2 bg-indigo-400 text-white font-semibold rounded-xl shadow hover:bg-indigo-300 transition text-sm"
+          className="bg-indigo-500 text-white p-2 font-semibold rounded-2xl hover:bg-indigo-600 cursor-pointer"
         >
           Log Out
         </button>

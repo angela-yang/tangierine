@@ -65,7 +65,7 @@ export default function SignupForm() {
                 className="p-2 border border-gray-400 rounded-xl"
                 required
             />
-            <button type="submit" className="bg-indigo-500 text-white p-2 rounded-xl hover:bg-indigo-600 cursor-pointer">
+            <button type="submit" className="bg-indigo-500 text-white p-2 rounded-2xl hover:bg-indigo-600 cursor-pointer">
                 Sign Up
             </button>
             {message && <p>{message}</p>}
