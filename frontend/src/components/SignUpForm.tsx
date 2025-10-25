@@ -1,11 +1,13 @@
 "use client";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function SignupForm() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const router = useRouter();
 
   const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -27,6 +29,7 @@ export default function SignupForm() {
       setUsername("");
       setEmail("");
       setPassword("");
+      router.push("/profile");
     } catch (err: any) {
       console.error(err);
       setMessage("Error: " + (err.message || "Unknown error"));

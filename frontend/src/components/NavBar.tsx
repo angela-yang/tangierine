@@ -23,6 +23,9 @@ export default function NavBar() {
           <Link href="/login" className="hover:text-gray-900 transition-colors">
             Login
           </Link>
+          <Link href="/profile" className="hover:text-gray-900 transition-colors">
+            Profile
+          </Link>
         </div>
       </div>
     </nav>

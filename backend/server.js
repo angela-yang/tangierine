@@ -53,6 +53,33 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+// Get user by ID
+app.get('/api/users/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query(
+      'SELECT id, username, email FROM users WHERE id = $1',
+      [id]
+    );
+
+    if (result.rows.length === 0) return res.status(404).json({ error: "User not found" });
+
+    const user = result.rows[0];
+
+    // Fetch user's commissions — NO imgsrc
+    const ordersResult = await pool.query(
+      'SELECT id, title AS name, description, status FROM commissions WHERE user_id = $1',
+      [id]
+    );
+    user.orders = ordersResult.rows;
+
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 // ---- COMMISSIONS ----
 
 // Create new commission

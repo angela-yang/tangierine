@@ -1,10 +1,12 @@
 "use client";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -26,6 +28,7 @@ export default function LoginForm() {
       setMessage(`Login successful! Welcome, ${data.username}`);
       setEmail("");
       setPassword("");
+      router.push("/profile");
     } catch (err: any) {
       console.error(err);
       setMessage("Error: " + (err.message || "Unknown error"));
@@ -53,7 +56,7 @@ export default function LoginForm() {
                 className="p-2 border border-gray-400 rounded-xl"
                 required
             />
-            <button type="submit" className="bg-indigo-500 text-white p-2 rounded-xl">
+            <button type="submit" className="bg-indigo-500 text-white p-2 rounded-xl cursor-pointer">
                 Log In
             </button>
             {message && <p>{message}</p>}
