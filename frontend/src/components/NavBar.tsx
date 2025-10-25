@@ -17,6 +17,12 @@ export default function NavBar() {
           <Link href="/commission" className="hover:text-gray-900 transition-colors">
             Commission
           </Link>
+          <Link href="/signup" className="hover:text-gray-900 transition-colors">
+            Create Account
+          </Link>
+          <Link href="/login" className="hover:text-gray-900 transition-colors">
+            Login
+          </Link>
         </div>
       </div>
     </nav>
