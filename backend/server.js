@@ -54,45 +54,50 @@ app.post('/api/login', async (req, res) => {
 });
 
 // Get user by ID
-app.get('/api/users/:id', async (req, res) => {
-  const { id } = req.params;
-  try {
-    const result = await pool.query(
-      'SELECT id, username, email FROM users WHERE id = $1',
-      [id]
-    );
+app.get("/api/users/:id", async (req, res) => {
+  const userId = req.params.id;
 
-    if (result.rows.length === 0) return res.status(404).json({ error: "User not found" });
+  try {
+    const result = await pool.query("SELECT id, username, email FROM users WHERE id = $1", [userId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
     const user = result.rows[0];
 
-    // Fetch user's commissions — NO imgsrc
-    const ordersResult = await pool.query(
-      'SELECT id, title AS name, description, status FROM commissions WHERE user_id = $1',
-      [id]
-    );
-    user.orders = ordersResult.rows;
-
-    res.json(user);
+    res.json({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      orders: [],
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Error fetching user:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
-
 
 // ---- COMMISSIONS ----
 
 // Create new commission
-app.post('/api/commissions', async (req, res) => {
-  const { user_id, title, description } = req.body;
+app.post("/api/commissions", async (req, res) => {
   try {
+    const { userId, name, email, details } = req.body;
+
+    if (!name || !email || !details) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
     const result = await pool.query(
-      'INSERT INTO commissions (user_id, title, description, status) VALUES ($1, $2, $3, $4) RETURNING *',
-      [user_id, title, description, 'pending']
+      "INSERT INTO commissions (user_id, name, email, details) VALUES ($1, $2, $3, $4) RETURNING *",
+      [userId || null, name, email, details]
     );
+
     res.json(result.rows[0]);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Error inserting commission:", err);
+    res.status(500).json({ error: "Failed to submit commission" });
   }
 });
 
