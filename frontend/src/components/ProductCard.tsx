@@ -12,7 +12,7 @@ export default function ProductCard({ product }: { product: Product }) {
             </div>
             <h3 className="text-lg font-semibold text-gray-800 mb-2">{product.name}</h3>
             <p className="text-gray-700 font-medium mb-4">${product.price}</p>
-            <button className="bg-indigo-300 text-gray-800 px-4 py-2 rounded-full hover:bg-indigo-200 transition-colors">
+            <button className="bg-indigo-300 text-gray-800 px-4 py-2 rounded-full hover:bg-indigo-200 transition-colors cursor-pointer">
                 Buy
             </button>
         </div>
