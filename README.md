@@ -6,6 +6,9 @@ Here is a quick sketch of the layout, something that is still to be refined:
 
 <img width="3072" height="1920" alt="Untitled_Artwork 40" src="https://github.com/user-attachments/assets/a9e4ed2f-e5b3-4699-9d29-45d36025b632" />
 
+Here is the current layout:
+<img width="1470" height="826" alt="image" src="https://github.com/user-attachments/assets/ace74d97-f2d7-406e-b47b-8243eb68e64a" />
+
 
 ## Currently Working On...
 My next steps will be to actually implement the functionality of the web app. I want customers to be able to create an account/profile and keep track of items in their cart/what they have already purchased. I also want to create a chat feature so customers can directly communicate with me. 
