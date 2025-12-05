@@ -2,10 +2,11 @@ import NavBar from "../../components/NavBar"
 import ProductCard from "../../components/ProductCard"
 
 const products = [
-  { id: 1, name: "Digital Illustration", price: 20 },
-  { id: 2, name: "Print - Small", price: 10 },
-  { id: 3, name: "Sticker Pack", price: 5 },
-  { id: 4, name: "Blind Pack", price: 15 },
+  { id: 1, name: "Digital Commission", price: 20, image:"images/products/commission.png" },
+  { id: 2, name: "Print - Small", price: 10, image:"images/products/print.png" },
+  { id: 3, name: "Print - Large", price: 15, image:"images/products/print.png" },
+  { id: 4, name: "Sticker Pack", price: 5, image:"images/products/sticker.png" },
+  { id: 5, name: "Blind Pack", price: 15, image:"images/products/blind.png" },
 ]
 
 export default function Shop() {
