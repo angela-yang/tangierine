@@ -28,8 +28,8 @@ const artCollections = [
       { id: 4, image: "/images/works/fanarts/val.png", title: "Kazuha x Valorant", year: "2023" },
       { id: 5, image: "/images/works/fanarts/jett.png", title: "Jett x Lofi Girl", year: "2023" },
       { id: 6, image: "/images/works/fanarts/kazuha.png", title: "Kazuha Drawing", year: "2022" },
-      { id: 7, image: "/images/works/fanarts/wefatcats.png", title: "We Bare Bears as cats", year: "2022" },
-      { id: 8, image: "/images/works/fanarts/megumi.png", title: "Appa Drawing", year: "2022" },
+      { id: 7, image: "/images/works/fanarts/wefatcats.png", title: "We Fat Cats", year: "2022" },
+      { id: 8, image: "/images/works/fanarts/megumi.png", title: "Megumi from JJK", year: "2022" },
       { id: 9, image: "/images/works/fanarts/genshin.png", title: "Genshin Fanart", year: "2022" },
       { id: 10, image: "/images/works/fanarts/spiritedaway.png", title: "Spirited Away Fanart", year: "2022" },
     ]
