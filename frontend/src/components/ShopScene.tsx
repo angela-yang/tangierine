@@ -44,7 +44,26 @@ export default function ShopScene() {
                     />
                 </div>
 
-                <ShopItem label="Shelf" imgSrc="/images/shelf.png" width={50} positionX={28} positionY={65} offsetX={offset.x} offsetY={offset.y} depthX={1} depthY={1}/>
+                <Link href="/shop" className="group">
+                    <ShopItem 
+                        label="Shelf" 
+                        imgSrc="/images/shelf.png" 
+                        width={50} 
+                        positionX={28} 
+                        positionY={65} 
+                        offsetX={offset.x} 
+                        offsetY={offset.y} 
+                        depthX={1} 
+                        depthY={1}
+                        className="transition-opacity duration-300 group-hover:opacity-60"
+                    />
+                    <span
+                        className="absolute z-10 flex items-center justify-center text-xl font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        style={{ left: `16%`, top: `60%` }}
+                    >
+                        Browse Products
+                    </span>    
+                </Link>
 
                 <Link href="/commission" className="group">
                     <ShopItem
@@ -95,7 +114,7 @@ export default function ShopScene() {
 
                 <ShopItem label="Welcome" imgSrc="/images/welcome.png" width={50} positionX={76} positionY={72} offsetX={offset.x} offsetY={offset.y} depthX={0.8} depthY={0.7}/>
 
-                <Link href="/shop" className="group">
+                <Link href="/work" className="group">
                     <ShopItem
                         label="Drawings"
                         imgSrc="/images/drawings.png"
@@ -112,7 +131,7 @@ export default function ShopScene() {
                         className="absolute z-10 flex items-center justify-center text-xl font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                         style={{ left: `79%`, top: `45%` }}
                     >
-                        Browse Drawings
+                        Browse Past Works
                     </span>
                 </Link>
 
