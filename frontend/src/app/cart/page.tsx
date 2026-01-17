@@ -14,8 +14,8 @@ type CartItem = {
 
 export default function Cart() {
   const [cartItems, setCartItems] = useState<CartItem[]>([
-    { id: 1, name: "Drawing 1", price: 15, quantity: 1, imgSrc: "/images/products/item1.png" },
-    { id: 2, name: "Print 1", price: 25, quantity: 2, imgSrc: "/images/products/item2.png" },
+    { id: 1, name: "Print 1", price: 15, quantity: 1, imgSrc: "/images/products/print.png" },
+    { id: 2, name: "Commission", price: 25, quantity: 2, imgSrc: "/images/products/commission.png" },
   ]);
 
   const increaseQuantity = (id: number) => {
@@ -78,7 +78,7 @@ export default function Cart() {
             <span className="font-bold text-xl text-gray-800">${totalPrice.toFixed(2)}</span>
           </div>
 
-          <button className="mt-4 w-full py-3 bg-indigo-400 text-white font-semibold rounded-lg shadow hover:bg-indigo-500 transition">
+          <button className="mt-4 py-3 bg-indigo-400 text-white font-semibold rounded-lg shadow hover:bg-indigo-500 transition cursor-pointer">
             Checkout
           </button>
         </div>

@@ -67,7 +67,7 @@ const artCollections = [
     artworks: [
       { id: 1, image: "/images/works/traditional/art1.jpg", title: "Comfort Food - Colored Pencil", year: "2025" },
       { id: 2, image: "/images/works/traditional/art3.jpg", title: "Mom and Me - Crayon", year: "2025" },
-      { id: 3, image: "/images/works/traditional/art2.jpg", title: "Africa Memory Project", year: "2025" },
+      { id: 3, image: "/images/works/traditional/art2.jpg", title: "Memory Project", year: "2025" },
       { id: 4, image: "/images/works/traditional/art4.jpg", title: "Love", year: "2025" },
       { id: 5, image: "/images/works/traditional/art5.jpg", title: "Fairytale Romance", year: "2025" },
       { id: 6, image: "/images/works/traditional/painting1.jpg", title: "Window to the Soul", year: "2024" },
