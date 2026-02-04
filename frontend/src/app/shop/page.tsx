@@ -35,8 +35,8 @@ export default function Shop() {
 
   return (
     <div className="absolute bg-[url('/images/bg.png')] bg-cover bg-center w-full h-[115vh] overflow-hidden">
+      <div className="hidden md:flex pointer-events-none fixed inset-0 border-[30px] border-[#3E1F69] z-10" />
       <HomeNav />
-
       <div
         className={`absolute transition-transform -translate-x-1/2 -translate-y-1/2`}
         style={{
@@ -67,7 +67,7 @@ export default function Shop() {
               {shelves.map((level) => (
                 <div key={level} className="relative">
                   {/* Products on this shelf */}
-                  <div className="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-10 py-7 pr-9">
+                  <div className="relative z-5 grid grid-cols-1 sm:grid-cols-3 gap-10 py-7 pr-9">
                     {products
                     .filter((p) => p.shelf === level)
                     .map((p) => (

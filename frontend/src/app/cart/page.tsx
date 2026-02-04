@@ -84,7 +84,8 @@ export default function Cart() {
 
           <div className="pt-[32vh] flex justify-center w-[80vw]">
             {/* Cart */}
-            <div className="relative bg-[#7280A7] rounded-lg shadow-2xl w-full h-[40vh] max-w-4xl p-6">
+            <div className="relative bg-[#7280A7] border-[5px] border-[#2D366A] rounded-lg shadow-2xl w-full h-[40vh] max-w-4xl p-2">
+              <div className="border-[5px] border-[#2D366A] rounded-lg p-6 py-10">
 
               {/* Handles */}
               <div className="absolute -bottom-6 left-6 w-16 h-4 bg-[#7280A7] rounded-full -rotate-12 shadow-md"></div>
@@ -129,6 +130,7 @@ export default function Cart() {
                     </div>
                   </div>
                 ))}
+                </div>
               </div>
             </div>
           </div>

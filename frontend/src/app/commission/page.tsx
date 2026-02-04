@@ -1,6 +1,7 @@
 "use client";
-import React, { useState } from "react";
-import NavBar from "../../components/NavBar";
+import React, { useState, useEffect } from "react";
+import HomeNav from "../../components/HomeNav";
+import ShopItem from "../../components/ShopItem";
 
 export default function Commission() {
   const [form, setForm] = useState({ name: "", email: "", details: "" });
@@ -89,10 +90,24 @@ export default function Commission() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-indigo-200 pt-24 relative">
-      <NavBar />
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+    
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+    const { innerWidth, innerHeight } = window;
+    const x = ((e.clientX - innerWidth / 2) / innerWidth) * -30;
+    const y = ((e.clientY - innerHeight / 2) / innerHeight) * -30;
+    setOffset({ x, y });
+    };
 
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-[url('/images/bg.png')] bg-cover bg-center pt-24 relative">
+      <div className="hidden md:flex pointer-events-none fixed inset-0 border-[30px] border-[#3E1F69]" />
+      <HomeNav />
       <div className="max-w-md mx-auto p-6 bg-indigo-50 shadow-lg rounded-2xl">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">
           Request a Commission
@@ -192,6 +207,12 @@ export default function Commission() {
           </div>
         </div>
       )}
+      <img
+        src="/images/frog.png"
+        className="w-[200px] md:w-[15vw] absolute top-[50vh] left-[30vw] md:left-[42vw] hover:scale-105 transition duration-500"
+      />
+      <ShopItem label="Lights" imgSrc="/images/light1.png" width={50} positionX={30} positionY={8} offsetX={0} offsetY={0} depthX={1.0} depthY={1.0}/>
+      <ShopItem label="Light" imgSrc="/images/light2.png" width={50} positionX={85} positionY={5} offsetX={0} offsetY={0} depthX={1.0} depthY={1.0}/>
     </div>
   );
 }

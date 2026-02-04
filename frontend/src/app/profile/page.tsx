@@ -61,7 +61,7 @@ export default function Profile() {
   if (!user) return <p className="pt-24 text-center">No user logged in.</p>;
 
   return (
-    <div className="min-h-screen pt-20 bg-indigo-100 flex justify-center p-8">
+    <div className="min-h-screen pt-20 bg-[url('/images/bg.png')] bg-cover bg-center flex justify-center p-8">
       <NavBar />
       <div className="w-full max-w-md flex flex-col gap-6">
         <h1 className="text-2xl font-bold text-gray-800 text-center">Profile</h1>
