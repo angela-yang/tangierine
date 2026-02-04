@@ -148,7 +148,7 @@ export default function Work() {
 
           {/* Collection Grid */}
           {!selectedCollection && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 px-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 px-4">
               {artCollections.map((collection) => (
                 <div
                   key={collection.id}

@@ -69,7 +69,7 @@ export default function Profile() {
         <div className="flex items-center gap-4 bg-indigo-50 p-4 rounded-2xl shadow-md">
           <Image
             src={user.profileImg}
-            alt="Profile Picture"
+            alt="Profile Pic"
             width={80}
             height={80}
             className="rounded-full"
