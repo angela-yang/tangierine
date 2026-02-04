@@ -58,7 +58,7 @@ export default function ShopScene() {
                         className="transition-opacity duration-300 group-hover:opacity-60"
                     />
                     <span
-                        className="absolute z-10 flex items-center justify-center text-xl font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        className="absolute z-50 flex items-center justify-center text-xl font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                         style={{ left: `16%`, top: `60%` }}
                     >
                         Browse Products
@@ -79,7 +79,7 @@ export default function ShopScene() {
                         className="transition-opacity duration-300 group-hover:opacity-60"
                     />
                     <span
-                        className="absolute z-10 flex items-center justify-center text-xl font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        className="absolute z-50 flex items-center justify-center text-xl font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                         style={{ left: `43%`, top: `35%` }}
                     >
                         Place a <br /> Commission
@@ -128,7 +128,7 @@ export default function ShopScene() {
                         depthY={0.2}
                     />
                     <span
-                        className="absolute z-10 flex items-center justify-center text-xl font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        className="absolute z-50 flex items-center justify-center text-xl font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                         style={{ left: `79%`, top: `45%` }}
                     >
                         Browse Past Works
@@ -151,7 +151,7 @@ export default function ShopScene() {
                         className="transition-opacity duration-300 group-hover:opacity-60"
                     />
                     <span
-                        className="absolute z-10 flex items-center justify-center text-l font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        className="absolute z-50 flex items-center justify-center text-l font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                         style={{ left: `58%`, top: `41%` }}
                     >
                         Pay Now
@@ -172,7 +172,7 @@ export default function ShopScene() {
                         className="transition-opacity duration-300 group-hover:opacity-60"
                     />
                     <span
-                        className="absolute z-10 flex items-center justify-center text-xl font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        className="absolute z-50 flex items-center justify-center text-xl font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                         style={{ left: `45%`, top: `90%` }}
                     >
                         View Cart
@@ -196,7 +196,7 @@ export default function ShopScene() {
                         className="transition-opacity duration-300 group-hover:opacity-60"
                     />
                     <span
-                        className="absolute z-10 flex items-center justify-center text-xl font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        className="absolute z-50 flex items-center justify-center text-xl font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                         style={{ left: `13%`, top: `75%` }}
                     >
                         Get a <br /> Capsule <br /> Toy!
