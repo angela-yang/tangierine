@@ -141,7 +141,7 @@ export default function Work() {
           {/* Header */}
           <div className="text-center mb-12">
             <h1 className="text-5xl font-bold text-gray-white/90 mb-4 mt-5">Art Gallery</h1>
-            <p className="text-lg text-gray-100/80 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-100/80 max-w-3xl mx-auto">
               A gallery of my different creations. Choose which collections you wish to browse!
             </p>
           </div>

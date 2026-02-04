@@ -55,7 +55,7 @@ export default function Shop() {
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold text-gray-100 mb-3">Our Products</h1>
-          <p className="text-gray-200/80">
+          <p className="text-gray-200/80 text-xl">
             Pick something off the shelf ✿
           </p>
         </div>
@@ -75,7 +75,7 @@ export default function Shop() {
                         key={p.id}
                         className="group flex flex-col items-center relative"
                       >
-                        {/* Product Box */}
+                        {/* Product */}
                         <div className="bg-[#F1EBE3] p-2 shadow-lg hover:shadow-xl transition-transform duration-500 hover:scale-105">
                           <img
                             src={p.image}

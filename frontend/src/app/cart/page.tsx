@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import NavBar from "../../components/NavBar"
+import HomeNav from "../../components/HomeNav";
+import ShopItem from "../../components/ShopItem";
 
 type CartItem = {
   id: number;
@@ -36,51 +37,101 @@ export default function Cart() {
     );
   };
 
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+    
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+    const { innerWidth, innerHeight } = window;
+    const x = ((e.clientX - innerWidth / 2) / innerWidth) * -30;
+    const y = ((e.clientY - innerHeight / 2) / innerHeight) * -30;
+    setOffset({ x, y });
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+
   const totalPrice = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
-    <div className="min-h-screen bg-indigo-200 p-8">
-      <NavBar />
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">Your Cart</h1>
+    <div className="min-h-screen bg-[url('/images/bg.png')] bg-cover bg-center relative">
+      <HomeNav />
+      {/*<ShopItem label="Counter" imgSrc="/images/counter.png" width={200} positionX={40} positionY={60} offsetX={offset.x} offsetY={offset.y} depthX={0.5} depthY={0.6}/>*/}
+
+      {/* Header */}
+      <div className="text-center mb-6 pt-[5vh]">
+        <h1 className="text-5xl font-bold text-gray-100 mb-3">Your Cart</h1>
+        <p className="text-gray-200/80 text-xl">
+          Ready to checkout?
+        </p>
+      </div>
 
       {cartItems.length === 0 ? (
-        <p className="text-gray-600">Your cart is empty!</p>
+        <p className="text-gray-600 text-center">Your cart is empty!</p>
       ) : (
-        <div className="flex flex-col gap-6">
-          {cartItems.map(item => (
-            <div key={item.id} className="flex items-center gap-4 bg-indigo-100 rounded-lg p-4 shadow-md">
-              <Image src={item.imgSrc} alt={item.name} width={80} height={80} className="rounded" />
-              <div className="flex-1">
-                <h2 className="font-semibold text-lg text-gray-800">{item.name}</h2>
-                <p className="text-gray-600">${item.price.toFixed(2)}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => decreaseQuantity(item.id)}
-                  className="bg-indigo-400 px-3 py-1 rounded hover:bg-indigo-300 transition"
-                >
-                  -
-                </button>
-                <span className="text-gray-800">{item.quantity}</span>
-                <button
-                  onClick={() => increaseQuantity(item.id)}
-                  className="bg-indigo-400 px-3 py-1 rounded hover:bg-indigo-300 transition"
-                >
-                  +
-                </button>
-              </div>
-              <p className="font-semibold text-gray-800">${(item.price * item.quantity).toFixed(2)}</p>
+        <div className="relative flex justify-center items-end">
+          {/* Cash Register */}
+          <div className="absolute top-[2vh] w-[20vw] h-auto bg-[#7280A7] rounded-lg shadow-2xl p-4">
+            <h1 className="font-bold text-lg text-gray-100 pb-4">Cash Register</h1>
+            <div className="p-4 bg-white/30 rounded-lg">
+              <span className="font-bold text-lg text-gray-800">Total:</span>
+              <p className="font-bold text-xl text-gray-700 mt-2">${totalPrice.toFixed(2)}</p>
             </div>
-          ))}
-
-          <div className="flex justify-between items-center mt-4 p-4 bg-indigo-100 rounded-lg shadow-md">
-            <span className="font-bold text-xl text-gray-800">Total:</span>
-            <span className="font-bold text-xl text-gray-800">${totalPrice.toFixed(2)}</span>
+            <button className="mt-5 w-full py-3 bg-[#B6BCCE] text-gray-700 font-semibold rounded-lg shadow hover:bg-[#C3CDE9] transition cursor-pointer">
+              Checkout
+            </button>
           </div>
 
-          <button className="mt-4 py-3 bg-indigo-400 text-white font-semibold rounded-lg shadow hover:bg-indigo-500 transition cursor-pointer">
-            Checkout
-          </button>
+          <div className="pt-[32vh] flex justify-center w-[80vw]">
+            {/* Cart */}
+            <div className="relative bg-[#7280A7] rounded-lg shadow-2xl w-full h-[40vh] max-w-4xl p-6">
+
+              {/* Handles */}
+              <div className="absolute -bottom-6 left-6 w-16 h-4 bg-[#7280A7] rounded-full -rotate-12 shadow-md"></div>
+              <div className="absolute -bottom-6 right-6 w-16 h-4 bg-[#7280A7] rounded-full rotate-12 shadow-md"></div>
+
+              {/* Cart Items */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {cartItems.map((item, index) => (
+                  <div
+                    key={item.id}
+                    className="relative flex flex-col items-center bg-[#EBC794] p-3 rounded-lg shadow-md transform transition-transform duration-300 group hover:-translate-y-1"
+                    style={{ zIndex: cartItems.length - index }}
+                  >
+                    <Image
+                      src={item.imgSrc}
+                      alt={item.name}
+                      width={100}
+                      height={100}
+                      className="object-contain rounded-sm shadow-inner"
+                    />
+                    {/* Quantity Buttons */}
+                    <div className="flex items-center gap-2 mt-2">
+                      <button
+                        onClick={() => decreaseQuantity(item.id)}
+                        className="bg-[#CB9861] px-3 py-1 rounded hover:bg-[#EBC794] transition"
+                      >
+                        -
+                      </button>
+                      <span className="font-semibold text-gray-800">{item.quantity}</span>
+                      <button
+                        onClick={() => increaseQuantity(item.id)}
+                        className="bg-[#CB9861] px-3 py-1 rounded hover:bg-[#EBC794] transition"
+                      >
+                        +
+                      </button>
+                    </div>
+
+                    {/* Name and Price */}
+                    <div className="mt-2 text-center">
+                      <p className="font-medium text-gray-800">{item.name}</p>
+                      <p className="text-gray-700">${item.price.toFixed(2)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
