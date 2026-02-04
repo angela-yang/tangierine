@@ -34,7 +34,7 @@ export default function Shop() {
   }, []);
 
   return (
-    <div className="absolute bg-[url('/images/bg.png')] bg-cover bg-center w-full h-[115vh] overflow-hidden">
+    <div className="absolute bg-[url('/images/bg.png')] bg-cover bg-center w-full h-[125vh] overflow-hidden">
       <div className="hidden md:flex pointer-events-none fixed inset-0 border-[30px] border-[#3E1F69] z-10" />
       <HomeNav />
       <div
@@ -61,7 +61,7 @@ export default function Shop() {
         </div>
 
         {/* Shelves */}
-        <div className="relative space-y-28">
+        <div className="relative space-y-28 h-[80vh]">
           <div className="w-full h-full bg-[#915E35] pt-5 p-5 rounded-md border-[3px] border-[#5A341C]">
             <div className="bg-[#915E35] border-[5px] border-[#5A341C] rounded-lg">
               {shelves.map((level) => (
