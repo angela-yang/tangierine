@@ -10,7 +10,7 @@ export default function HomeNav() {
 
     return (
         <div
-            className="fixed top-4 left-4 z-50"
+            className="fixed top-4 left-4 z-200"
             onMouseEnter={() => {
                 setIsOpen(true);
                 setHovered(true);
@@ -21,7 +21,9 @@ export default function HomeNav() {
             }}
         >
             <button className="bg-[rgb(235,199,148)] text-[rgb(47,54,103)] p-3 rounded-full shadow-lg hover:bg-[rgb(89,102,154)] transition cursor-pointer">
-                <FaHome size={24} />
+                <Link href="/" className="transition">
+                    <FaHome size={24} />
+                </Link>
             </button>
 
             {isOpen && (

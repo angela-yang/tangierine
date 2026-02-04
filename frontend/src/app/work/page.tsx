@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import HomeNav from "../../components/HomeNav";
+import ShopItem from "../../components/ShopItem";
 
 const artCollections = [
   {
@@ -115,15 +116,31 @@ export default function Work() {
     });
   };
 
+
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  
+  useEffect(() => {
+      const handleMouseMove = (e: MouseEvent) => {
+      const { innerWidth, innerHeight } = window;
+      const x = ((e.clientX - innerWidth / 2) / innerWidth) * -30;
+      const y = ((e.clientY - innerHeight / 2) / innerHeight) * -30;
+      setOffset({ x, y });
+      };
+
+      window.addEventListener("mousemove", handleMouseMove);
+      return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-[url('/images/bg.png')] bg-cover bg-center relative">
+    <div className="bg-[url('/images/bg.png')] bg-cover bg-center relative">
+      <div className="hidden md:flex pointer-events-none fixed inset-0 border-[30px] border-[#3E1F69] z-[100]" />
       <div className="min-h-screen">
         <HomeNav />
 
-        <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="mx-auto px-[15vw] py-[10vh]">
           {/* Header */}
-          <div className="text-center mb-16">
-            <h1 className="text-5xl font-bold text-gray-white/90 mb-4">Art Gallery</h1>
+          <div className="text-center mb-12">
+            <h1 className="text-5xl font-bold text-gray-white/90 mb-4 mt-5">Art Gallery</h1>
             <p className="text-lg text-gray-100/80 max-w-2xl mx-auto">
               A gallery of my different creations. Choose which collections you wish to browse!
             </p>
@@ -138,25 +155,26 @@ export default function Work() {
                   onClick={() => openCollection(collection)}
                   className="cursor-pointer relative group"
                 >
-                  <div className="relative group">
-                    {/* Fake tape */}
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-20 h-6 bg-[#F1EBE3]/70 rotate-[-2deg] shadow-sm z-10">
-                    </div>
-
-                    {/* Image */}
-                    <div className="bg-[#F1EBE3] p-2 shadow-md transition-transform duration-300 group-hover:-translate-y-1">
-                      <div className="relative h-64 overflow-hidden">
-                        <img
-                          src={collection.artworks[0].image}
-                          alt={collection.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          loading="lazy"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Hover label */}
-                    <div className="absolute bottom-2 left-2 bg-white/80 p-2 rounded-md opacity-0 group-hover:opacity-100 transition-opacity text-sm text-gray-800">
+                  <div className="relative h-[25vh]">
+                    {collection.artworks.slice(0, 3).map((art, i) => (
+                      <img
+                        key={i}
+                        src={art.image}
+                        alt={`${collection.title} ${i + 1}`}
+                        loading="lazy"
+                        className={`
+                          absolute inset-0 w-full h-full object-cover
+                          border-[2px] border-[#996944]/70
+                          rounded-sm shadow-md
+                          transition-transform duration-500
+                          ${i === 0 ? "z-30" : i === 1 ? "z-20" : "z-10"}
+                          ${i === 1 ? "translate-x-2 translate-y-2 rotate-1" : ""}
+                          ${i === 2 ? "translate-x-4 translate-y-4 -rotate-1" : ""}
+                          group-hover:scale-105
+                        `}
+                      />
+                    ))}
+                    <div className="absolute bottom-2 left-2 z-40 bg-white/80 p-2 rounded-md opacity-0 group-hover:opacity-100 transition-opacity text-sm text-gray-800">
                       {collection.title} ({collection.count})
                     </div>
                   </div>
@@ -177,7 +195,7 @@ export default function Work() {
 
               <h2 className="text-4xl font-bold text-gray-200 mb-6">{selectedCollection.title}</h2>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-center">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-center">
                 {selectedCollection.artworks.map((art) => (
                   <div
                     key={art.id}
@@ -259,6 +277,9 @@ export default function Work() {
             </div>
           </div>
         )}
+
+        <ShopItem label="Lights" imgSrc="/images/light1.png" width={50} positionX={30} positionY={8} offsetX={0} offsetY={0} depthX={1.0} depthY={1.0}/>
+        <ShopItem label="Light" imgSrc="/images/light2.png" width={50} positionX={85} positionY={5} offsetX={0} offsetY={0} depthX={1.0} depthY={1.0}/>
       </div>
     </div>
   );
