@@ -61,7 +61,7 @@ export default function Shop() {
         </div>
 
         {/* Shelves */}
-        <div className="relative space-y-28 h-[80vh]">
+        <div className="relative space-y-28">
           <div className="w-full h-full bg-[#915E35] pt-5 p-5 rounded-md border-[3px] border-[#5A341C]">
             <div className="bg-[#915E35] border-[5px] border-[#5A341C] rounded-lg">
               {shelves.map((level) => (
