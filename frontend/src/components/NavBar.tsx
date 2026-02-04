@@ -1,33 +1,34 @@
-import Link from "next/link"
+import Link from "next/link";
 
 export default function NavBar() {
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 ">
-      <div className="bg-[rgb(149,154,224)] rounded px-6 py-4 text-gray-700 flex justify-between items-center">
-        <Link href="/" className="text-2xl font-bold">
+    <nav className="fixed top-2 left-0 w-full z-50 backdrop-blur-sm">
+      <div className="bg-[rgba(245,240,230,0.95)] shadow-md rounded-full px-6 py-2 flex justify-between items-center max-w-7xl mx-auto">
+        {/* Logo */}
+        <Link href="/" className="text-2xl font-bold text-gray-800 hover:text-gray-900 transition-colors">
           Tangierine
         </Link>
-        <div className="flex gap-6 text-lg">
-          <Link href="/" className="hover:text-gray-900 transition-colors">
-            Home
-          </Link>
-          <Link href="/shop" className="hover:text-gray-900 transition-colors">
-            Shop
-          </Link>
-          <Link href="/commission" className="hover:text-gray-900 transition-colors">
-            Commission
-          </Link>
-          <Link href="/signup" className="hover:text-gray-900 transition-colors">
-            Create Account
-          </Link>
-          <Link href="/login" className="hover:text-gray-900 transition-colors">
-            Login
-          </Link>
-          <Link href="/profile" className="hover:text-gray-900 transition-colors">
-            Profile
-          </Link>
+
+        {/* Menu */}
+        <div className="flex flex-wrap gap-4 md:gap-6 text-lg">
+          {[
+            { href: "/", label: "Home" },
+            { href: "/shop", label: "Shop" },
+            { href: "/commission", label: "Commission" },
+            { href: "/signup", label: "Create Account" },
+            { href: "/login", label: "Login" },
+            { href: "/profile", label: "Profile" },
+          ].map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="px-4 py-2 rounded-full bg-white/80 text-gray-700 font-medium shadow-sm hover:shadow-md hover:bg-white transition-all duration-200 transform hover:-translate-y-0.5 hover:scale-105"
+            >
+              {item.label}
+            </Link>
+          ))}
         </div>
       </div>
     </nav>
-  )
+  );
 }
