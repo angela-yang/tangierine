@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Tangierine",
   description: "Angela's Art Shop",
+  icons: {
+    icon: '/images/orange.png',
+  },
 };
 
 export default function RootLayout({
