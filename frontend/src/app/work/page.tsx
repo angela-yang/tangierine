@@ -133,7 +133,7 @@ export default function Work() {
 
   return (
     <div className="bg-[url('/images/bg.png')] bg-cover bg-center relative">
-      <div className="hidden md:flex pointer-events-none fixed inset-0 border-[30px] border-[#3E1F69] z-[100]" />
+      <div className="hidden md:flex pointer-events-none fixed inset-0 border-[30px] border-[#3E1F69] z-[10]" />
       <div className="min-h-screen">
         <HomeNav />
 

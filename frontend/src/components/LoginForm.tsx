@@ -36,7 +36,7 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen bg-indigo-200 flex items-center justify-center">
+    <div className="min-h-screen bg-[url('/images/bg.png')] bg-cover bg-center flex items-center justify-center">
       <div className="bg-indigo-50 rounded-xl shadow-xl p-16 w-[90vw] max-w-[500px] justify-center">
         <h1 className="text-2xl font-bold text-gray-700 mb-4">Log In</h1>
         <form onSubmit={handleLogin} className="flex flex-col gap-4 text-gray-700">

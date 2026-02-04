@@ -30,7 +30,7 @@ export default function ShopItem({
 
     return (
         <div
-            className={`absolute cursor-pointer transition-transform hover:scale-105 -translate-x-1/2 -translate-y-1/2 ${className}`}
+            className={`absolute z-30 cursor-pointer transition-transform hover:scale-105 -translate-x-1/2 -translate-y-1/2 ${className}`}
             style={{
                 left: `calc(${positionX}% + ${parallaxX}px)`,
                 top: `calc(${positionY}% + ${parallaxY}px)`,
