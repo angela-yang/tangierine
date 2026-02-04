@@ -3,10 +3,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { FaHome, FaShoppingCart, FaUser, FaStore } from "react-icons/fa";
 import Dialogue from "./Dialogue";
+import { usePathname } from 'next/navigation';
 
 export default function HomeNav() {
     const [isOpen, setIsOpen] = useState(false);
     const [hovered, setHovered] = useState(false);
+
+    const pathname = usePathname();
+    const isHomePage = pathname === '/';
 
     return (
         <div
@@ -43,7 +47,7 @@ export default function HomeNav() {
                 </div>
             )}
 
-            {hovered && (
+            {hovered && isHomePage && (
                 <Dialogue
                 text="Here's a simpler way to navigate my shop!"
                 speed={40}
