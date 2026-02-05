@@ -37,7 +37,7 @@ type Reward = {
   color: string;
 }
 
-export default function Shop() {
+export default function Capsule() {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isSpinning, setIsSpinning] = useState(false);
   const [capsuleFalling, setCapsuleFalling] = useState(false);
@@ -59,7 +59,7 @@ export default function Shop() {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
-  const capsuleColors = ['#FF6B9D', '#4ECDC4', '#FFE66D', '#95E1D3', '#F38181', '#AA96DA'];
+  const capsuleColors = ['#DF8385', '#F5BC78', '#A19659', '#8496D7', '#F67CC1', '#B06EE0'];
 
   const getRandomReward = (hasCoins: boolean): Reward => {
     const color = capsuleColors[Math.floor(Math.random() * capsuleColors.length)];

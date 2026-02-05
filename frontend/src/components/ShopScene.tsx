@@ -180,7 +180,27 @@ export default function ShopScene() {
                 </Link>
 
                 <ShopItem label="Soot Sprites" imgSrc="/images/soot.png" width={60} positionX={84} positionY={81} offsetX={offset.x} offsetY={offset.y} depthX={0.9} depthY={0.7}/> 
-                <ShopItem label="Plants" imgSrc="/images/plants.png" width={45} positionX={40} positionY={42} offsetX={offset.x} offsetY={offset.y} depthX={0.9} depthY={0.7}/>
+                
+                <Link href="/garden" className="group">
+                    <ShopItem 
+                        label="Plants" 
+                        imgSrc="/images/plants.png" 
+                        width={45} 
+                        positionX={40} 
+                        positionY={42} 
+                        offsetX={offset.x} 
+                        offsetY={offset.y} 
+                        depthX={0.9} 
+                        depthY={0.7}
+                        className="transition-opacity duration-300 group-hover:opacity-60"
+                    />
+                    <span
+                        className="absolute z-50 flex items-center justify-center text-xl font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        style={{ left: `30%`, top: `42%` }}
+                    >
+                        View Garden!
+                    </span>
+                </Link>
 
                 <Link href="/capsule" className="group">
                     <ShopItem 
