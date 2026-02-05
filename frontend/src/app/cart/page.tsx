@@ -17,6 +17,7 @@ export default function Cart() {
   const [cartItems, setCartItems] = useState<CartItem[]>([
     { id: 1, name: "Print 1", price: 15, quantity: 1, imgSrc: "/images/products/print.png" },
     { id: 2, name: "Commission", price: 25, quantity: 2, imgSrc: "/images/products/commission.png" },
+    { id: 3, name: "Stickers", price: 10, quantity: 3, imgSrc: "/images/products/sticker.png" },
   ]);
 
   const increaseQuantity = (id: number) => {
@@ -71,7 +72,7 @@ export default function Cart() {
       ) : (
         <div className="relative flex justify-center items-end">
           {/* Cash Register */}
-          <div className="absolute top-[2vh] w-[20vw] h-auto bg-[#7280A7] rounded-lg shadow-2xl p-4">
+          <div className="absolute top-[2vh] w-[300px] md:w-[20vw] h-auto bg-[#7280A7] rounded-lg shadow-2xl p-4">
             <h1 className="font-bold text-lg text-gray-100 pb-4">Cash Register</h1>
             <div className="p-4 bg-white/30 rounded-lg">
               <span className="font-bold text-lg text-gray-800">Total:</span>
@@ -82,17 +83,11 @@ export default function Cart() {
             </button>
           </div>
 
-          <div className="pt-[32vh] flex justify-center w-[80vw]">
+          <div className="pt-[32vh] flex justify-center w-full">
             {/* Cart */}
-            <div className="relative bg-[#7280A7] border-[5px] border-[#2D366A] rounded-lg shadow-2xl w-full h-[40vh] max-w-4xl p-2">
-              <div className="border-[5px] border-[#2D366A] rounded-lg p-6 py-10">
-
-              {/* Handles */}
-              <div className="absolute -bottom-6 left-6 w-16 h-4 bg-[#7280A7] rounded-full -rotate-12 shadow-md"></div>
-              <div className="absolute -bottom-6 right-6 w-16 h-4 bg-[#7280A7] rounded-full rotate-12 shadow-md"></div>
-
+            <div className="relative bg-[url('/images/cart1.png')] bg-cover bg-center w-full h-[60vh] bottom-0 max-w-7xl p-2">
               {/* Cart Items */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-w-3xl mx-auto pt-10">
                 {cartItems.map((item, index) => (
                   <div
                     key={item.id}
@@ -130,7 +125,6 @@ export default function Cart() {
                     </div>
                   </div>
                 ))}
-                </div>
               </div>
             </div>
           </div>
