@@ -78,7 +78,7 @@ export default function Cart() {
               <span className="font-bold text-lg text-gray-800">Total:</span>
               <p className="font-bold text-xl text-gray-700 mt-2">${totalPrice.toFixed(2)}</p>
             </div>
-            <button className="mt-5 w-full py-3 bg-[#B6BCCE] text-gray-700 font-semibold rounded-lg shadow hover:bg-[#C3CDE9] transition cursor-pointer">
+            <button className="mt-5 w-full py-3 bg-[#EBC794] text-gray-700 font-semibold rounded-lg shadow hover:bg-[#C3CDE9] transition cursor-pointer">
               Checkout
             </button>
           </div>
