@@ -28,8 +28,18 @@ export default function Garden() {
   useEffect(() => {
     fetch("/api/flowers")
         .then(res => res.json())
-        .then(data => setFlowers(data))
-        .catch(err => console.error("Failed to load flowers", err));
+        .then(data => {
+        if (Array.isArray(data)) {
+            setFlowers(data);
+        } else {
+            console.error("Expected array, got:", data);
+            setFlowers([]);
+        }
+        })
+        .catch(err => {
+        console.error("Failed to load flowers:", err);
+        setFlowers([]);
+        });
   }, []);
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
