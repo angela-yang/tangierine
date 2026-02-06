@@ -2,53 +2,91 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 function getSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  
+  if (!url || !key) {
+    throw new Error('Missing Supabase environment variables');
+  }
+  
+  return createClient(url, key);
 }
 
 export async function GET() {
-  const supabase = getSupabase();
+  try {
+    const supabase = getSupabase();
 
-  const { data, error } = await supabase
-    .from("flowers")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(30);
+    const { data, error } = await supabase
+      .from("flowers")
+      .select("*")
+      .order("timestamp", { ascending: false })
+      .limit(20);
 
-  if (error) {
-    console.error(error);
+    if (error) {
+      console.error('Supabase error:', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json(data || []);
+  } catch (error: any) {
+    console.error('API error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-
-  return NextResponse.json(data);
 }
 
 export async function POST(req: Request) {
-  const supabase = getSupabase();
-  const flower = await req.json();
+  try {
+    const supabase = getSupabase();
+    const flower = await req.json();
 
-  const { error } = await supabase.from("flowers").insert(flower);
+    console.log('Inserting flower:', { ...flower, imageData: '[truncated]' });
 
-  if (error) {
-    console.error(error);
+    const { data, error } = await supabase
+      .from("flowers")
+      .insert([flower])
+      .select();
+
+    if (error) {
+      console.error('Insert error:', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Clean up old flowers (keep only 20)
+    const { data: allFlowers } = await supabase
+      .from('flowers')
+      .select('id, timestamp')
+      .order('timestamp', { ascending: false });
+
+    if (allFlowers && allFlowers.length > 20) {
+      const idsToDelete = allFlowers.slice(20).map(f => f.id);
+      await supabase.from('flowers').delete().in('id', idsToDelete);
+    }
+
+    return NextResponse.json(data?.[0] || { success: true });
+  } catch (error: any) {
+    console.error('API error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-
-  return NextResponse.json({ success: true });
 }
 
 export async function DELETE(req: Request) {
-  const supabase = getSupabase();
-  const { id } = await req.json();
+  try {
+    const supabase = getSupabase();
+    const { id } = await req.json();
 
-  const { error } = await supabase.from("flowers").delete().eq("id", id);
+    const { error } = await supabase
+      .from("flowers")
+      .delete()
+      .eq("id", id);
 
-  if (error) {
-    console.error(error);
+    if (error) {
+      console.error('Delete error:', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error('API error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-
-  return NextResponse.json({ success: true });
 }
