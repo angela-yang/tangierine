@@ -69,7 +69,7 @@ export default function Capsule() {
       return { type: 'note', note: randomNote, color };
     }
 
-    const isProduct = Math.random() < 0.5;
+    const isProduct = Math.random() < 0.3;
 
     if (isProduct) {
       const randomProduct = products[Math.floor(Math.random() * products.length)];

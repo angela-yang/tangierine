@@ -156,18 +156,18 @@ export default function Garden() {
     };
 
   const saveFlower = async () => {
-    console.log('🌸 Save flower clicked!');
+    console.log('Save flower clicked!');
     const canvas = canvasRef.current;
     if (!canvas) {
-        console.error('❌ Canvas not found');
+        console.error('Canvas not found');
         return;
     }
 
     const imageData = canvas.toDataURL('image/png');
-    console.log('✅ Image data created');
+    console.log('Image data created');
     
     const position = generateValidPosition(flowers);
-    console.log('📍 Position generated:', position);
+    console.log('Position generated:', position);
 
     const newFlowerInput: FlowerInput = {
         id: crypto.randomUUID(),
@@ -180,28 +180,28 @@ export default function Garden() {
     };
 
     try {
-        console.log('📤 Sending flower to API...');
+        console.log('Sending flower to API...');
         const response = await fetch('/api/flowers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newFlowerInput),
         });
 
-        console.log('📥 Response status:', response.status);
+        console.log('Response status:', response.status);
 
         if (response.ok) {
-        console.log('✅ Flower saved successfully!');
+        console.log('Flower saved successfully!');
         setShowDrawingCanvas(false);
         clearCanvas();
         // Just reload from API - don't try to add to state manually
         setTimeout(loadFlowers, 500);
         } else {
         const responseData = await response.json();
-        console.error('❌ Failed to save flower:', responseData);
+        console.error('Failed to save flower:', responseData);
         alert('Failed to save flower: ' + (responseData.error || 'Unknown error'));
         }
     } catch (error) {
-        console.error('❌ Error saving flower:', error);
+        console.error('Error saving flower:', error);
         alert('Error saving flower: ' + error);
     }
     };
