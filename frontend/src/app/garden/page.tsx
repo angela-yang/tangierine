@@ -5,13 +5,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import HomeNav from "../../components/HomeNav"
 
 type Flower = {
-  id?: string;
-  imageData: string;
-  x: number;
+  id: string;
+  imageData: string; // base64 image
+  x: number; // position in garden
   y: number;
   scale: number;
   rotation: number;
-  timestamp: number;
 }
 
 export default function Garden() {
@@ -24,64 +23,18 @@ export default function Garden() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [lastPos, setLastPos] = useState<{ x: number; y: number } | null>(null);
 
-  const colors = ['#FF6B9D', '#de5e5e', '#4ECDC4', '#66c688', '#a9e78dff', '#ffe397', '#f9b260ff', '#fd90a9ff', '#AA96DA', '#81b4e6', '#efe4e4'];
+  const colors = ['#FF6B9D', '#4ECDC4', '#FFE66D', '#95E1D3', '#F38181', '#AA96DA', '#FF85A1', '#8FE3CF'];
 
-  // Load flowers on mount and poll for updates
   useEffect(() => {
-    loadFlowers();
-    
-    // Poll every 5 seconds for updates
-    const interval = setInterval(loadFlowers, 5000);
-    return () => clearInterval(interval);
+    // Load flowers from localStorage on mount
+    const savedFlowers = localStorage.getItem('gardenFlowers');
+    if (savedFlowers) {
+      setFlowers(JSON.parse(savedFlowers));
+    }
   }, []);
 
-  const loadFlowers = async () => {
-    try {
-      const response = await fetch('/api/flowers');
-      if (response.ok) {
-        const data = await response.json();
-        setFlowers(data);
-      }
-    } catch (error) {
-      console.error('Error loading flowers:', error);
-    }
-  };
-
-  // Check if new position overlaps with existing flowers
-  const isPositionValid = (newX: number, newY: number, existingFlowers: Flower[]): boolean => {
-    const minDistance = 15;
-    
-    for (const flower of existingFlowers) {
-      const distance = Math.sqrt(
-        Math.pow(newX - flower.x, 2) + Math.pow(newY - flower.y, 2)
-      );
-      
-      if (distance < minDistance) {
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const generateValidPosition = (existingFlowers: Flower[]): { x: number; y: number } => {
-    let attempts = 0;
-    const maxAttempts = 50;
-    
-    while (attempts < maxAttempts) {
-      const x = Math.random() * 70 + 10;
-      const y = Math.random() * 60 + 20;
-      
-      if (isPositionValid(x, y, existingFlowers)) {
-        return { x, y };
-      }
-      
-      attempts++;
-    }
-    
-    return {
-      x: Math.random() * 70 + 10,
-      y: Math.random() * 60 + 20
-    };
+  const saveFlowers = (newFlowers: Flower[]) => {
+    localStorage.setItem('gardenFlowers', JSON.stringify(newFlowers));
   };
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -132,53 +85,37 @@ export default function Garden() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   };
 
-  const saveFlower = async () => {
+  const saveFlower = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    // Convert canvas to base64 image
     const imageData = canvas.toDataURL('image/png');
-    const position = generateValidPosition(flowers);
 
+    // Create new flower with random position
     const newFlower: Flower = {
-        imageData,
-        x: position.x,
-        y: position.y,
-        scale: Math.random() * 0.3 + 0.8,
-        rotation: Math.random() * 20 - 10,
-        timestamp: Date.now(),
+      id: Date.now().toString(),
+      imageData,
+      x: Math.random() * 70 + 10,
+      y: Math.random() * 60 + 20, 
+      scale: Math.random() * 0.3 + 0.8,
+      rotation: Math.random() * 20 - 10,
     };
 
+    // Add to garden (keep max 20)
+    const updatedFlowers = [newFlower, ...flowers].slice(0, 30);
+    setFlowers(updatedFlowers);
+    saveFlowers(updatedFlowers);
 
-
-    try {
-      const response = await fetch('/api/flowers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newFlower),
-      });
-
-      if (response.ok) {
-        setShowDrawingCanvas(false);
-        clearCanvas();
-        setTimeout(loadFlowers, 500);
-      }
-    } catch (error) {
-      console.error('Error saving flower:', error);
-    }
+    setShowDrawingCanvas(false);
+    clearCanvas();
   };
 
-  const deleteFlower = async (id?: string) => {
-    if (!id) return;
-
-    await fetch('/api/flowers', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-    });
-
-    loadFlowers();
+  const deleteFlower = (id: string) => {
+    const updatedFlowers = flowers.filter(f => f.id !== id);
+    setFlowers(updatedFlowers);
+    saveFlowers(updatedFlowers);
   };
-
 
   return (
     <div className="relative bg-[url('/images/bg.png')] bg-cover bg-center w-full min-h-screen overflow-x-hidden">
@@ -195,7 +132,7 @@ export default function Garden() {
             Draw a flower and watch it bloom in the garden!
           </p>
           <p className="text-sm text-white/70 mt-2">
-            {flowers.length}/20 flowers planted • Shared with everyone!
+            {flowers.length}/30 flowers planted
           </p>
         </div>
 
@@ -230,10 +167,10 @@ export default function Garden() {
                     alt="Flower"
                     className="w-32 h-32 object-contain drop-shadow-lg transition-transform group-hover:scale-110"
                   />
-
+                  {/* Delete button on hover */}
                   <button
                     onClick={() => deleteFlower(flower.id)}
-                    className="absolute top-5 right-5 w-6 h-6 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold hover:bg-red-600 shadow-lg"
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold hover:bg-red-600 shadow-lg"
                   >
                     ×
                   </button>
@@ -285,6 +222,7 @@ export default function Garden() {
                 Draw Your Flower :D
               </h2>
 
+              {/* Drawing Canvas */}
               <div className="mb-6 flex justify-center">
                 <canvas
                   ref={canvasRef}
@@ -298,6 +236,7 @@ export default function Garden() {
                 />
               </div>
 
+              {/* Color Picker */}
               <div className="mb-6">
                 <p className="text-sm font-semibold text-gray-700 mb-2">Colors:</p>
                 <div className="flex gap-2 flex-wrap justify-center">
@@ -314,6 +253,7 @@ export default function Garden() {
                 </div>
               </div>
 
+              {/* Brush Size */}
               <div className="mb-6">
                 <p className="text-sm font-semibold text-gray-700 mb-2">
                   Brush Size: {brushSize}px
@@ -328,6 +268,7 @@ export default function Garden() {
                 />
               </div>
 
+              {/* Action Buttons */}
               <div className="flex gap-4 justify-center">
                 <button
                   onClick={clearCanvas}
