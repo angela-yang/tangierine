@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '../../lib/supabase';
+import { supabaseServer as supabase } from '../../lib/supabaseServer';
 
 export async function GET() {
   try {
@@ -21,10 +21,13 @@ export async function POST(request: Request) {
   try {
     const flower = await request.json();
 
+    const { id, ...flowerWithoutId } = flower;
+
     const { data, error } = await supabase
       .from('flowers')
-      .insert([flower])
-      .select();
+      .insert([flowerWithoutId])
+      .select()
+      .single();
 
     if (error) throw error;
 

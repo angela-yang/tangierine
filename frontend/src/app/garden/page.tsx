@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import HomeNav from "../../components/HomeNav"
 
 type Flower = {
-  id: string;
+  id?: string;
   imageData: string;
   x: number;
   y: number;
@@ -140,14 +140,15 @@ export default function Garden() {
     const position = generateValidPosition(flowers);
 
     const newFlower: Flower = {
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      imageData,
-      x: position.x,
-      y: position.y,
-      scale: Math.random() * 0.3 + 0.8,
-      rotation: Math.random() * 20 - 10,
-      timestamp: Date.now(),
+        imageData,
+        x: position.x,
+        y: position.y,
+        scale: Math.random() * 0.3 + 0.8,
+        rotation: Math.random() * 20 - 10,
+        timestamp: Date.now(),
     };
+
+
 
     try {
       const response = await fetch('/api/flowers', {
@@ -166,21 +167,18 @@ export default function Garden() {
     }
   };
 
-  const deleteFlower = async (id: string) => {
-    try {
-      const response = await fetch('/api/flowers', {
+  const deleteFlower = async (id?: string) => {
+    if (!id) return;
+
+    await fetch('/api/flowers', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
-      });
+    });
 
-      if (response.ok) {
-        loadFlowers();
-      }
-    } catch (error) {
-      console.error('Error deleting flower:', error);
-    }
+    loadFlowers();
   };
+
 
   return (
     <div className="relative bg-[url('/images/bg.png')] bg-cover bg-center w-full min-h-screen overflow-x-hidden">
