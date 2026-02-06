@@ -26,16 +26,11 @@ export default function Garden() {
   const colors = ['#FF6B9D', '#4ECDC4', '#FFE66D', '#95E1D3', '#F38181', '#AA96DA', '#FF85A1', '#8FE3CF'];
 
   useEffect(() => {
-    // Load flowers from localStorage on mount
-    const savedFlowers = localStorage.getItem('gardenFlowers');
-    if (savedFlowers) {
-      setFlowers(JSON.parse(savedFlowers));
-    }
+    fetch("/api/flowers")
+        .then(res => res.json())
+        .then(data => setFlowers(data))
+        .catch(err => console.error("Failed to load flowers", err));
   }, []);
-
-  const saveFlowers = (newFlowers: Flower[]) => {
-    localStorage.setItem('gardenFlowers', JSON.stringify(newFlowers));
-  };
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
     setIsDrawing(true);
@@ -85,37 +80,51 @@ export default function Garden() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   };
 
-  const saveFlower = () => {
+  const saveFlower = async () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Convert canvas to base64 image
-    const imageData = canvas.toDataURL('image/png');
+    const imageData = canvas.toDataURL("image/png");
 
-    // Create new flower with random position
     const newFlower: Flower = {
-      id: Date.now().toString(),
-      imageData,
-      x: Math.random() * 70 + 10,
-      y: Math.random() * 60 + 20, 
-      scale: Math.random() * 0.3 + 0.8,
-      rotation: Math.random() * 20 - 10,
+        id: crypto.randomUUID(),
+        imageData,
+        x: Math.random() * 70 + 10,
+        y: Math.random() * 60 + 20,
+        scale: Math.random() * 0.3 + 0.8,
+        rotation: Math.random() * 20 - 10,
     };
 
-    // Add to garden (keep max 20)
-    const updatedFlowers = [newFlower, ...flowers].slice(0, 30);
-    setFlowers(updatedFlowers);
-    saveFlowers(updatedFlowers);
+    try {
+        await fetch("/api/flowers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newFlower),
+        });
+
+        setFlowers(prev => [newFlower, ...prev].slice(0, 30));
+    } catch (err) {
+        console.error("Failed to save flower", err);
+    }
 
     setShowDrawingCanvas(false);
     clearCanvas();
   };
 
-  const deleteFlower = (id: string) => {
-    const updatedFlowers = flowers.filter(f => f.id !== id);
-    setFlowers(updatedFlowers);
-    saveFlowers(updatedFlowers);
+  const deleteFlower = async (id: string) => {
+    try {
+        await fetch("/api/flowers", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+        });
+
+        setFlowers(prev => prev.filter(f => f.id !== id));
+    } catch (err) {
+        console.error("Failed to delete flower", err);
+    }
   };
+
 
   return (
     <div className="relative bg-[url('/images/bg.png')] bg-cover bg-center w-full min-h-screen overflow-x-hidden">
