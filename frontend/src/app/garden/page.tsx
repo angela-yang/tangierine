@@ -23,7 +23,7 @@ export default function Garden() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [lastPos, setLastPos] = useState<{ x: number; y: number } | null>(null);
 
-  const colors = ['#FF6B9D', '#4ECDC4', '#FFE66D', '#95E1D3', '#F38181', '#AA96DA', '#FF85A1', '#8FE3CF'];
+  const colors = ['#FF6B9D', '#de5e5e', '#4ECDC4', '#66c688', '#a9e78dff', '#ffe397', '#f9b260ff', '#fd90a9ff', '#AA96DA', '#81b4e6', '#efe4e4'];
 
   useEffect(() => {
     fetch("/api/flowers")
