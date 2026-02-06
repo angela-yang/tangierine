@@ -159,7 +159,6 @@ export default function Garden() {
       if (response.ok) {
         setShowDrawingCanvas(false);
         clearCanvas();
-        // Reload flowers to get updated list
         setTimeout(loadFlowers, 500);
       }
     } catch (error) {

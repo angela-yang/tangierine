@@ -1,67 +1,67 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { supabase } from '../../lib/supabase';
 
-const FLOWERS_FILE = path.join(process.cwd(), 'data', 'flowers.json');
-
-// Ensure data directory exists
-const ensureDataDir = () => {
-  const dataDir = path.join(process.cwd(), 'data');
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-  }
-  if (!fs.existsSync(FLOWERS_FILE)) {
-    fs.writeFileSync(FLOWERS_FILE, JSON.stringify([]));
-  }
-};
-
-// GET - Get all flowers
 export async function GET() {
   try {
-    ensureDataDir();
-    const data = fs.readFileSync(FLOWERS_FILE, 'utf-8');
-    const flowers = JSON.parse(data);
-    return NextResponse.json(flowers);
+    const { data, error } = await supabase
+      .from('flowers')
+      .select('*')
+      .order('timestamp', { ascending: false })
+      .limit(20);
+
+    if (error) throw error;
+    return NextResponse.json(data || []);
   } catch (error) {
+    console.error('Error getting flowers:', error);
     return NextResponse.json([], { status: 200 });
   }
 }
 
-// POST - Add new flower
 export async function POST(request: Request) {
   try {
-    ensureDataDir();
-    const newFlower = await request.json();
-    
-    const data = fs.readFileSync(FLOWERS_FILE, 'utf-8');
-    let flowers = JSON.parse(data);
-    
-    // Add new flower and keep only latest 20
-    flowers = [newFlower, ...flowers].slice(0, 20);
-    
-    fs.writeFileSync(FLOWERS_FILE, JSON.stringify(flowers, null, 2));
-    
-    return NextResponse.json(newFlower, { status: 201 });
+    const flower = await request.json();
+
+    const { data, error } = await supabase
+      .from('flowers')
+      .insert([flower])
+      .select();
+
+    if (error) throw error;
+
+    // Delete old flowers beyond 30
+    const { data: allFlowers } = await supabase
+      .from('flowers')
+      .select('id, timestamp')
+      .order('timestamp', { ascending: false });
+
+    if (allFlowers && allFlowers.length > 30) {
+      const idsToDelete = allFlowers.slice(30).map(f => f.id);
+      await supabase
+        .from('flowers')
+        .delete()
+        .in('id', idsToDelete);
+    }
+
+    return NextResponse.json(data?.[0], { status: 201 });
   } catch (error) {
+    console.error('Error adding flower:', error);
     return NextResponse.json({ error: 'Failed to save flower' }, { status: 500 });
   }
 }
 
-// DELETE - Remove a flower
 export async function DELETE(request: Request) {
   try {
-    ensureDataDir();
     const { id } = await request.json();
-    
-    const data = fs.readFileSync(FLOWERS_FILE, 'utf-8');
-    let flowers = JSON.parse(data);
-    
-    flowers = flowers.filter((f: any) => f.id !== id);
-    
-    fs.writeFileSync(FLOWERS_FILE, JSON.stringify(flowers, null, 2));
-    
+
+    const { error } = await supabase
+      .from('flowers')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
     return NextResponse.json({ success: true });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to delete flower' }, { status: 500 });
+    console.error('Error deleting flower:', error);
+    return NextResponse.json({ error: 'Failed to delete' }, { status: 500 });
   }
 }
