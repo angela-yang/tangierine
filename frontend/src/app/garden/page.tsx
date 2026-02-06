@@ -6,11 +6,21 @@ import HomeNav from "../../components/HomeNav"
 
 type Flower = {
   id: string;
-  imageData: string; // base64 image
+  image_url: string; // base64 image
   x: number; // position in garden
   y: number;
   scale: number;
   rotation: number;
+}
+
+type FlowerInput = {
+  id: string;
+  imageData: string;
+  x: number;
+  y: number;
+  scale: number;
+  rotation: number;
+  timestamp: number;
 }
 
 export default function Garden() {
@@ -90,36 +100,111 @@ export default function Garden() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   };
 
+  const loadFlowers = async () => {
+    try {
+        const response = await fetch('/api/flowers');
+        if (response.ok) {
+        const data = await response.json();
+        setFlowers(data);
+        }
+    } catch (error) {
+        console.error('Error loading flowers:', error);
+    }
+  };
+
+  useEffect(() => {
+    loadFlowers();
+    
+    const interval = setInterval(loadFlowers, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+    const isPositionValid = (newX: number, newY: number, existingFlowers: Flower[]): boolean => {
+        const minDistance = 15; // Minimum distance between flower centers (in %)
+        
+        for (const flower of existingFlowers) {
+            const distance = Math.sqrt(
+            Math.pow(newX - flower.x, 2) + Math.pow(newY - flower.y, 2)
+            );
+            
+            if (distance < minDistance) {
+            return false;
+            }
+        }
+        return true;
+    };
+
+    const generateValidPosition = (existingFlowers: Flower[]): { x: number; y: number } => {
+        let attempts = 0;
+        const maxAttempts = 50;
+        
+        while (attempts < maxAttempts) {
+            const x = Math.random() * 70 + 10; // 10-80%
+            const y = Math.random() * 60 + 20; // 20-80%
+            
+            if (isPositionValid(x, y, existingFlowers)) {
+            return { x, y };
+            }
+            
+            attempts++;
+        }
+        
+        return {
+            x: Math.random() * 70 + 10,
+            y: Math.random() * 60 + 20
+        };
+    };
+
   const saveFlower = async () => {
+    console.log('🌸 Save flower clicked!');
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {
+        console.error('❌ Canvas not found');
+        return;
+    }
 
-    const imageData = canvas.toDataURL("image/png");
+    const imageData = canvas.toDataURL('image/png');
+    console.log('✅ Image data created');
+    
+    const position = generateValidPosition(flowers);
+    console.log('📍 Position generated:', position);
 
-    const newFlower: Flower = {
+    const newFlowerInput: FlowerInput = {
         id: crypto.randomUUID(),
         imageData,
-        x: Math.random() * 70 + 10,
-        y: Math.random() * 60 + 20,
+        x: position.x,
+        y: position.y,
         scale: Math.random() * 0.3 + 0.8,
         rotation: Math.random() * 20 - 10,
+        timestamp: Date.now(),
     };
 
     try {
-        await fetch("/api/flowers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newFlower),
+        console.log('📤 Sending flower to API...');
+        const response = await fetch('/api/flowers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newFlowerInput),
         });
 
-        setFlowers(prev => [newFlower, ...prev].slice(0, 30));
-    } catch (err) {
-        console.error("Failed to save flower", err);
-    }
+        console.log('📥 Response status:', response.status);
 
-    setShowDrawingCanvas(false);
-    clearCanvas();
-  };
+        if (response.ok) {
+        console.log('✅ Flower saved successfully!');
+        setShowDrawingCanvas(false);
+        clearCanvas();
+        // Just reload from API - don't try to add to state manually
+        setTimeout(loadFlowers, 500);
+        } else {
+        const responseData = await response.json();
+        console.error('❌ Failed to save flower:', responseData);
+        alert('Failed to save flower: ' + (responseData.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('❌ Error saving flower:', error);
+        alert('Error saving flower: ' + error);
+    }
+    };
 
   const deleteFlower = async (id: string) => {
     try {
@@ -134,7 +219,6 @@ export default function Garden() {
         console.error("Failed to delete flower", err);
     }
   };
-
 
   return (
     <div className="relative bg-[url('/images/bg.png')] bg-cover bg-center w-full min-h-screen overflow-x-hidden">
@@ -182,7 +266,7 @@ export default function Garden() {
                   }}
                 >
                   <img
-                    src={flower.imageData}
+                    src={flower.image_url}
                     alt="Flower"
                     className="w-32 h-32 object-contain drop-shadow-lg transition-transform group-hover:scale-110"
                   />
