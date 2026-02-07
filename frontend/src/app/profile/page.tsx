@@ -71,80 +71,38 @@ export default function Profile() {
 
   const fetchUserData = async () => {
     try {
-      // Fetch profile with is_admin
       const { data: profileData, error: profileError } = await supabase
         .from('users')
         .select('*')
         .eq('id', user!.id)
         .single();
 
-      if (profileError) {
-        console.error('Profile error:', profileError);
-        throw profileError;
-      }
+      if (profileError) throw profileError;
       
       setProfile(profileData);
 
       if (profileData?.is_admin) {
-        // Admin view
-        const { data: allOrdersData, error: ordersError } = await supabase
-          .from('orders')
-          .select(`
-            *,
-            users (
-              username,
-              email
-            )
-          `)
-          .order('created_at', { ascending: false });
-
-        if (ordersError) {
-          console.error('Orders error:', ordersError);
-        } else {
-          setOrders(allOrdersData || []);
-        }
-
-        const { data: allCommissionsData, error: commissionsError } = await supabase
-          .from('commissions')
-          .select(`
-            *,
-            users (
-              username,
-              email
-            )
-          `)
-          .order('created_at', { ascending: false });
-
-        if (commissionsError) {
-          console.error('Commissions error:', commissionsError);
-        } else {
-          setCommissions(allCommissionsData || []);
-        }
+        // Admin: fetch via API route
+        const response = await fetch(`/api/admin/data?userId=${user!.id}`);
+        const { orders: allOrders, commissions: allCommissions } = await response.json();
+        setOrders(allOrders || []);
+        setCommissions(allCommissions || []);
       } else {
-        // Regular user view
-        const { data: userOrdersData, error: ordersError } = await supabase
+        // Regular user: fetch own data
+        const { data: userOrdersData } = await supabase
           .from('orders')
           .select('*')
           .eq('user_id', user!.id)
           .order('created_at', { ascending: false });
 
-        if (ordersError) {
-          console.error('Orders error:', ordersError);
-        } else {
-          setOrders(userOrdersData || []);
-        }
-
-        const { data: userCommissionsData, error: commissionsError } = await supabase
+        const { data: userCommissionsData } = await supabase
           .from('commissions')
           .select('*')
           .eq('user_id', user!.id)
           .order('created_at', { ascending: false });
 
-        if (commissionsError) {
-          console.error('Commissions error:', commissionsError);
-        } else {
-          setCommissions(userCommissionsData || []);
-        }
+        setOrders(userOrdersData || []);
+        setCommissions(userCommissionsData || []);
       }
     } catch (err) {
       console.error('Fetch error:', err);
