@@ -5,7 +5,11 @@ import { FaHome, FaShoppingCart, FaUser, FaStore } from "react-icons/fa";
 import Dialogue from "./Dialogue";
 import { usePathname } from 'next/navigation';
 
-export default function HomeNav() {
+interface HomeNavProps {
+  unreadCount?: number;
+}
+
+export default function HomeNav({ unreadCount = 0 }: HomeNavProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [hovered, setHovered] = useState(false);
 
@@ -43,6 +47,11 @@ export default function HomeNav() {
                 </Link>
                 <Link href="/profile" className="flex items-center gap-2 p-2 rounded-xl hover:bg-[rgb(47,54,103)] transition">
                     <FaUser /> Profile
+                    {unreadCount > 0 && (
+                        <span className="absolute -top-2 -right-3 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
+                        {unreadCount}
+                        </span>
+                    )}
                 </Link>
                 </div>
             )}
