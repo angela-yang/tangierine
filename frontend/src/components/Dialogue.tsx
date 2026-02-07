@@ -7,9 +7,10 @@ type DialogueProps = {
   duration?: number;
   className?: string;
   style?: React.CSSProperties;
+  exit?: boolean;
 };
 
-export default function Dialogue({ text, speed = 50, duration, className, style,}: DialogueProps) {
+export default function Dialogue({ text, speed = 50, duration, className, style, exit,}: DialogueProps) {
   const [displayed, setDisplayed] = useState("");
   const [visible, setVisible] = useState(true);
 
@@ -40,12 +41,14 @@ export default function Dialogue({ text, speed = 50, duration, className, style,
       {displayed}
       <span className="animate-pulse">{displayed.length < text.length ? "|" : ""}</span>
 
-      <button
-        onClick={() => setVisible(false)}
-        className="absolute top-1 right-2 text-gray-300 hover:text-gray-100 text-sm cursor-pointer"
-      >
-        x
-      </button>
+      {exit && (
+        <button
+          onClick={() => setVisible(false)}
+          className="absolute top-1 right-2 text-gray-300 hover:text-gray-100 text-sm cursor-pointer"
+        >
+          x
+        </button>
+      )}
     </div>
   );
 }

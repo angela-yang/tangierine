@@ -58,10 +58,11 @@ export default function HomeNav({ unreadCount = 0 }: HomeNavProps) {
 
             {hovered && isHomePage && (
                 <Dialogue
-                text="Here's a simpler way to navigate my shop!"
-                speed={40}
-                className={"w-60"}
-                style={{left: "122%", top: "60%",}}
+                    text="Here's a simpler way to navigate my shop!"
+                    speed={40}
+                    className={"w-60"}
+                    style={{left: "122%", top: "60%",}}
+                    exit={false}
                 />
             )}
         </div>

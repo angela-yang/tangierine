@@ -89,9 +89,10 @@ export default function ShopScene() {
                 <Dialogue
                     text="Hello!! Welcome to my art shop :) Feel free to look around..."
                     speed={40}
-                    duration={8000}
+                    duration={10000}
                     className="w-100"
                     style={{left: "40%", top: "15%",}}
+                    exit={true}
                 />
 
                 <ShopItem label="Stars" imgSrc="/images/stars.png" width={35} positionX={22} positionY={22} offsetX={offset.x} offsetY={offset.y} depthX={0.3} depthY={0.6}/>

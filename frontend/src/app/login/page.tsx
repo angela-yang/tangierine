@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../lib/AuthContext';
 import HomeNav from '../../components/HomeNav';
-import { supabase } from "@/app/lib/supabase";
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -18,7 +17,7 @@ export default function Login() {
     
     try {
       await signIn(email, password);
-      router.push('/profile');
+      router.push('/');
     } catch (err: any) {
       setError(err.message);
     }
