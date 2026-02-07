@@ -70,6 +70,30 @@ export default function Profile() {
   }, [user, authLoading, router]);
 
   const fetchUserData = async () => {
+    const { data: userOrdersData, error: ordersError } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('user_id', user!.id)
+      .order('created_at', { ascending: false });
+
+    if (ordersError) {
+      console.error('Orders error:', ordersError);
+    } else {
+      setOrders(userOrdersData || []);
+    }
+
+    const { data: userCommissionsData, error: commissionsError } = await supabase
+      .from('commissions')
+      .select('*')
+      .eq('user_id', user!.id)
+      .order('created_at', { ascending: false });
+
+    if (commissionsError) {
+      console.error('Commissions error:', commissionsError);
+    } else {
+      setCommissions(userCommissionsData || []);
+    }
+
   try {
     const { data: profileData, error: profileError } = await supabase
       .from('users')
