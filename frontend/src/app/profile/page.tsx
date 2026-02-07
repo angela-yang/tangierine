@@ -70,46 +70,44 @@ export default function Profile() {
   }, [user, authLoading, router]);
 
   const fetchUserData = async () => {
-    try {
-      const { data: profileData, error: profileError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user!.id)
-        .single();
+  try {
+    const { data: profileData, error: profileError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', user!.id)
+      .single();
 
-      if (profileError) throw profileError;
-      
-      setProfile(profileData);
-
-      if (profileData?.is_admin) {
-        // Admin: fetch via API route
-        const response = await fetch(`/api/admin/data?userId=${user!.id}`);
-        const { orders: allOrders, commissions: allCommissions } = await response.json();
-        setOrders(allOrders || []);
-        setCommissions(allCommissions || []);
-      } else {
-        // Regular user: fetch own data
-        const { data: userOrdersData } = await supabase
-          .from('orders')
-          .select('*')
-          .eq('user_id', user!.id)
-          .order('created_at', { ascending: false });
-
-        const { data: userCommissionsData } = await supabase
-          .from('commissions')
-          .select('*')
-          .eq('user_id', user!.id)
-          .order('created_at', { ascending: false });
-
-        setOrders(userOrdersData || []);
-        setCommissions(userCommissionsData || []);
-      }
-    } catch (err) {
-      console.error('Fetch error:', err);
-    } finally {
-      setLoading(false);
+    if (profileError) {
+      console.error('Profile error:', profileError);
+      throw profileError;
     }
-  };
+    
+    setProfile(profileData);
+    console.log('Profile loaded:', profileData);
+
+    if (profileData?.is_admin) {
+      console.log('User is admin, fetching admin data...');
+      // Admin: fetch via API route
+      const response = await fetch(`/api/admin/data?userId=${user!.id}`);
+      console.log('API response status:', response.status);
+      
+      const data = await response.json();
+      console.log('API response data:', data);
+      
+      setOrders(data.orders || []);
+      setCommissions(data.commissions || []);
+      
+      console.log('Orders set:', data.orders?.length);
+      console.log('Commissions set:', data.commissions?.length);
+    } else {
+      // Regular user code...
+    }
+  } catch (err) {
+    console.error('Fetch error:', err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -345,7 +343,7 @@ export default function Profile() {
                     <select
                       value={newStatus}
                       onChange={(e) => setNewStatus(e.target.value)}
-                      className="w-full p-2 border border-gray-300 rounded-xl focus:border-indigo-500 focus:outline-none"
+                      className="w-full p-2 border text-gray-600 border-gray-300 rounded-xl focus:border-indigo-500 focus:outline-none"
                     >
                       <option value="pending">Pending</option>
                       <option value="approved">Approved</option>
@@ -361,7 +359,7 @@ export default function Profile() {
                       value={response}
                       onChange={(e) => setResponse(e.target.value)}
                       placeholder="Type your response..."
-                      className="w-full h-32 p-3 border border-gray-300 rounded-xl focus:border-indigo-500 focus:outline-none resize-none"
+                      className="w-full h-32 p-3 border text-gray-600 border-gray-300 rounded-xl focus:border-indigo-500 focus:outline-none resize-none"
                     />
                   </div>
 
@@ -369,7 +367,7 @@ export default function Profile() {
                     <button
                       onClick={handleSubmitResponse}
                       disabled={!response || submitting}
-                      className="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 rounded-xl transition disabled:opacity-50"
+                      className="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 rounded-xl transition disabled:opacity-50 cursor-pointer"
                     >
                       {submitting ? 'Sending...' : 'Send Response'}
                     </button>
