@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../lib/AuthContext';
 import HomeNav from '../../components/HomeNav';
+import { supabase } from "@/app/lib/supabase";
 
 export default function Login() {
   const [email, setEmail] = useState('');

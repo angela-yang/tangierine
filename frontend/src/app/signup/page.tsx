@@ -18,8 +18,7 @@ export default function Signup() {
     
     try {
       await signUp(email, password, username);
-      alert('Check your email to confirm your account!');
-      router.push('/login');
+      router.push('/profile');
     } catch (err: any) {
       setError(err.message);
     }
