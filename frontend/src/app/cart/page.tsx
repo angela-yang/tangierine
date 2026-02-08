@@ -8,6 +8,9 @@ import Link from 'next/link';
 import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../lib/supabase';
 import HomeNav from '../../components/HomeNav';
+import { loadStripe } from '@stripe/stripe-js';
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 type CartItem = {
   id: string;
@@ -23,6 +26,7 @@ export default function Cart() {
   const { user, loading: authLoading } = useAuth();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [checkingOut, setCheckingOut] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -93,32 +97,36 @@ export default function Cart() {
       return;
     }
 
+    setCheckingOut(true);
+
     try {
-      // Create orders for each cart item
-      const orderPromises = cartItems.map((item) =>
-        supabase.from('orders').insert({
-          user_id: user!.id,
-          product_name: item.product_name,
-          product_image: item.product_image,
-          price: item.price * item.quantity
-        })
-      );
+      // Create Stripe checkout session
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user!.id,
+          cartItems: cartItems,
+        }),
+      });
 
-      await Promise.all(orderPromises);
+      const data = await response.json();
 
-      // Clear cart
-      const { error: deleteError } = await supabase
-        .from('cart_items')
-        .delete()
-        .eq('user_id', user!.id);
+      if (data.error) {
+        throw new Error(data.error);
+      }
 
-      if (deleteError) throw deleteError;
-
-      alert('Order placed successfully!');
-      router.push('/profile');
-    } catch (err) {
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL received');
+      }
+    } catch (err: any) {
       console.error('Checkout error:', err);
-      alert('Failed to complete checkout');
+      alert('Failed to start checkout: ' + err.message);
+      setCheckingOut(false);
     }
   };
 
@@ -236,10 +244,18 @@ export default function Cart() {
 
               <button
                 onClick={handleCheckout}
-                className="w-full bg-[#7280A7] hover:[#5D71A8] text-white font-bold py-3 rounded-xl transition"
+                disabled={checkingOut}
+                className="w-full bg-[#56699C] hover:bg-[#3F548D] text-white font-bold py-3 rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
-                Proceed to Checkout
+                {checkingOut ? 'Redirecting to Stripe...' : 'Proceed to Checkout'}
               </button>
+
+              <div className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-600">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                </svg>
+                Secure payment powered by Stripe
+              </div>
             </div>
           </>
         )}
