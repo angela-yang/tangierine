@@ -24,6 +24,7 @@ type CommissionMessage = {
   commission_id: string;
   sender_id: string;
   message: string;
+  image_url?: string; // Add this
   created_at: string;
   users?: {
     username: string;
@@ -73,6 +74,8 @@ export default function Profile() {
   const [submitting, setSubmitting] = useState(false);
 
   const [unreadCount, setUnreadCount] = useState(0);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -136,6 +139,78 @@ export default function Profile() {
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedCommission || !user) return;
+
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image must be smaller than 5MB');
+      return;
+    }
+
+    setUploadingImage(true);
+
+    try {
+      // Upload to Supabase Storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${selectedCommission.id}/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('commission-images')
+        .upload(fileName, file, {
+          contentType: file.type
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('commission-images')
+        .getPublicUrl(fileName);
+
+      // Send message with image
+      const { error: messageError } = await supabase
+        .from('commission_messages')
+        .insert({
+          commission_id: selectedCommission.id,
+          sender_id: user.id,
+          message: '[Image]',
+          image_url: publicUrl
+        });
+
+      if (messageError) throw messageError;
+
+      // Update commission unread flags
+      const updates: any = {};
+      if (profile?.is_admin) {
+        updates.user_unread = true;
+        updates.responded_at = new Date().toISOString();
+        updates.responded_by = user.id;
+      } else {
+        updates.admin_unread = true;
+      }
+
+      await supabase
+        .from('commissions')
+        .update(updates)
+        .eq('id', selectedCommission.id);
+
+      // Refresh messages
+      await handleSelectCommission(selectedCommission);
+
+      // Reset file input
+      if (imageInputRef.current) {
+        imageInputRef.current.value = '';
+      }
+    } catch (err: any) {
+      console.error('Upload error:', err);
+      alert('Failed to upload image: ' + err.message);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleProfileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
@@ -429,9 +504,31 @@ export default function Profile() {
                             }`}
                           >
                             <p className="font-semibold text-xs text-gray-600 mb-1">
-                              {msg.users?.username || 'User'} • {new Date(msg.created_at).toLocaleString()}
+                              {msg.sender_id === user!.id ? (profile?.is_admin ? 'You (Admin)' : 'You') : (profile?.is_admin ? msg.users?.username : 'Admin')} • {new Date(msg.created_at).toLocaleString()}
                             </p>
-                            <p className="text-gray-800">{msg.message}</p>
+                            
+                            {msg.image_url ? (
+                              <div className="mt-2">
+                                <a 
+                                  href={msg.image_url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="block"
+                                >
+                                  <img
+                                    src={msg.image_url}
+                                    alt="Uploaded image"
+                                    className="max-w-full rounded-lg cursor-pointer hover:opacity-90 transition"
+                                    style={{ maxHeight: '300px' }}
+                                  />
+                                </a>
+                                {msg.message !== '[Image]' && (
+                                  <p className="text-gray-800 mt-2">{msg.message}</p>
+                                )}
+                              </div>
+                            ) : (
+                              <p className="text-gray-800">{msg.message}</p>
+                            )}
                           </div>
                         ))
                       ) : (
@@ -457,14 +554,35 @@ export default function Profile() {
                     </select>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Your Message</label>
-                    <textarea
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      placeholder="Type your message..."
-                      className="w-full h-32 p-3 border border-gray-300 text-gray-700 rounded-xl focus:border-indigo-500 focus:outline-none resize-none"
-                    />
+                  <div className="flex gap-2 items-end">
+                    <div className="flex-1">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Your Message</label>
+                      <textarea
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        placeholder="Type your message..."
+                        className="w-full h-32 p-3 border border-gray-300 text-gray-700 rounded-xl focus:border-indigo-500 focus:outline-none resize-none"
+                      />
+                    </div>
+                    
+                    <div className="flex flex-col gap-1 mb-2">
+                      <label className="block text-sm font-semibold text-gray-700">Attach Image</label>
+                      <button
+                        onClick={() => imageInputRef.current?.click()}
+                        disabled={uploadingImage}
+                        className="w-10 h-10 bg-gray-200 hover:bg-gray-300 rounded-xl flex items-center justify-center disabled:opacity-50 cursor-pointer"
+                        title="Upload image"
+                      >
+                        {uploadingImage ? '⏳' : '📎'}
+                      </button>
+                      <input
+                        ref={imageInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                    </div>
                   </div>
 
                   <div className="flex gap-2">
@@ -524,7 +642,7 @@ export default function Profile() {
               ref={fileInputRef}
               type="file"
               accept="image/*"
-              onChange={handleImageUpload}
+              onChange={handleProfileUpload}
               className="hidden"
             />
           </div>
@@ -634,9 +752,31 @@ export default function Profile() {
                         }`}
                       >
                         <p className="font-semibold text-xs text-gray-600 mb-1">
-                          {msg.sender_id === user!.id ? 'You' : 'Admin'} • {new Date(msg.created_at).toLocaleString()}
+                          {msg.sender_id === user!.id ? (profile?.is_admin ? 'You (Admin)' : 'You') : (profile?.is_admin ? msg.users?.username : 'Admin')} • {new Date(msg.created_at).toLocaleString()}
                         </p>
-                        <p className="text-gray-800">{msg.message}</p>
+                        
+                        {msg.image_url ? (
+                          <div className="mt-2">
+                            <a 
+                              href={msg.image_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="block"
+                            >
+                              <img
+                                src={msg.image_url}
+                                alt="Uploaded image"
+                                className="max-w-full rounded-lg cursor-pointer hover:opacity-90 transition"
+                                style={{ maxHeight: '300px' }}
+                              />
+                            </a>
+                            {msg.message !== '[Image]' && (
+                              <p className="text-gray-800 mt-2">{msg.message}</p>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="text-gray-800">{msg.message}</p>
+                        )}
                       </div>
                     ))
                   ) : (
@@ -646,14 +786,35 @@ export default function Profile() {
               </div>
 
               {/* Reply */}
-              <div className="mb-4">
-                <label className="text-sm font-semibold text-gray-700 mb-2 block">Your Reply</label>
-                <textarea
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Type your message..."
-                  className="w-full h-24 p-3 border border-gray-300 text-gray-700 rounded-xl focus:border-indigo-500 focus:outline-none resize-none"
-                />
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Your Reply</label>
+                  <textarea
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    placeholder="Type your reply..."
+                    className="w-full h-32 p-3 border border-gray-300 text-gray-700 rounded-xl focus:border-indigo-500 focus:outline-none resize-none"
+                  />
+                </div>
+                
+                <div className="flex flex-col gap-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Attach Image</label>
+                  <button
+                    onClick={() => imageInputRef.current?.click()}
+                    disabled={uploadingImage}
+                    className="w-12 h-12 bg-gray-200 hover:bg-gray-300 rounded-xl flex items-center justify-center disabled:opacity-50 cursor-pointer"
+                    title="Upload image"
+                  >
+                    {uploadingImage ? '⏳' : '📎'}
+                  </button>
+                  <input
+                    ref={imageInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </div>
               </div>
 
               <div className="flex gap-2">

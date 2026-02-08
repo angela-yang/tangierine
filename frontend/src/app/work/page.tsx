@@ -190,7 +190,7 @@ export default function Work() {
                 onClick={closeCollection}
                 className="mb-8 px-4 py-2 bg-[#CB9861] hover:bg-[#EBC794] text-gray-800 rounded-xl cursor-pointer shadow-sm transition-all flex items-center gap-2"
               >
-                ← Back to Shop
+                ← Back to Gallery
               </button>
 
               <h2 className="text-4xl font-bold text-gray-200 mb-6">{selectedCollection.title}</h2>
