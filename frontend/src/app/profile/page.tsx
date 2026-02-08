@@ -19,6 +19,17 @@ type Order = {
   };
 };
 
+type CommissionMessage = {
+  id: string;
+  commission_id: string;
+  sender_id: string;
+  message: string;
+  created_at: string;
+  users?: {
+    username: string;
+  };
+};
+
 type Commission = {
   id: string;
   user_id: string;
@@ -29,10 +40,13 @@ type Commission = {
   admin_response: string | null;
   responded_at: string | null;
   created_at: string;
+  user_unread: boolean;
+  admin_unread: boolean;
   users?: {
     username: string;
     email: string;
   };
+  messages?: CommissionMessage[];
 };
 
 type UserProfile = {
@@ -54,9 +68,11 @@ export default function Profile() {
 
   // Admin-specific state
   const [selectedCommission, setSelectedCommission] = useState<Commission | null>(null);
-  const [response, setResponse] = useState("");
+  const [newMessage, setNewMessage] = useState("");
   const [newStatus, setNewStatus] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -70,68 +86,54 @@ export default function Profile() {
   }, [user, authLoading, router]);
 
   const fetchUserData = async () => {
-    const { data: userOrdersData, error: ordersError } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('user_id', user!.id)
-      .order('created_at', { ascending: false });
+    try {
+      const { data: profileData, error: profileError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user!.id)
+        .single();
 
-    if (ordersError) {
-      console.error('Orders error:', ordersError);
-    } else {
-      setOrders(userOrdersData || []);
-    }
-
-    const { data: userCommissionsData, error: commissionsError } = await supabase
-      .from('commissions')
-      .select('*')
-      .eq('user_id', user!.id)
-      .order('created_at', { ascending: false });
-
-    if (commissionsError) {
-      console.error('Commissions error:', commissionsError);
-    } else {
-      setCommissions(userCommissionsData || []);
-    }
-
-  try {
-    const { data: profileData, error: profileError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', user!.id)
-      .single();
-
-    if (profileError) {
-      console.error('Profile error:', profileError);
-      throw profileError;
-    }
-    
-    setProfile(profileData);
-    console.log('Profile loaded:', profileData);
-
-    if (profileData?.is_admin) {
-      console.log('User is admin, fetching admin data...');
-      // Admin: fetch via API route
-      const response = await fetch(`/api/admin/data?userId=${user!.id}`);
-      console.log('API response status:', response.status);
+      if (profileError) throw profileError;
       
-      const data = await response.json();
-      console.log('API response data:', data);
-      
-      setOrders(data.orders || []);
-      setCommissions(data.commissions || []);
-      
-      console.log('Orders set:', data.orders?.length);
-      console.log('Commissions set:', data.commissions?.length);
-    } else {
-      // Regular user code...
+      setProfile(profileData);
+
+      if (profileData?.is_admin) {
+        // Admin: fetch via API route
+        const response = await fetch(`/api/admin/data?userId=${user!.id}`);
+        const { orders: allOrders, commissions: allCommissions } = await response.json();
+        setOrders(allOrders || []);
+        setCommissions(allCommissions || []);
+        
+        // Count unread for admin
+        const unread = allCommissions?.filter((c: Commission) => c.admin_unread).length || 0;
+        setUnreadCount(unread);
+      } else {
+        // Regular user
+        const { data: userOrdersData } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('user_id', user!.id)
+          .order('created_at', { ascending: false });
+
+        const { data: userCommissionsData } = await supabase
+          .from('commissions')
+          .select('*')
+          .eq('user_id', user!.id)
+          .order('created_at', { ascending: false });
+
+        setOrders(userOrdersData || []);
+        setCommissions(userCommissionsData || []);
+        
+        // Count unread for user
+        const unread = userCommissionsData?.filter((c: Commission) => c.user_unread).length || 0;
+        setUnreadCount(unread);
+      }
+    } catch (err) {
+      console.error('Fetch error:', err);
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error('Fetch error:', err);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -172,37 +174,97 @@ export default function Profile() {
     }
   };
 
-  const handleSelectCommission = (commission: Commission) => {
+  const handleSelectCommission = async (commission: Commission) => {
     setSelectedCommission(commission);
-    setResponse(commission.admin_response || "");
     setNewStatus(commission.status);
+    setNewMessage("");
+    
+    // Fetch messages for this commission
+    const { data: messages } = await supabase
+      .from('commission_messages')
+      .select(`
+        *,
+        users (username)
+      `)
+      .eq('commission_id', commission.id)
+      .order('created_at', { ascending: true });
+    
+    setSelectedCommission(prev => prev ? { ...prev, messages: messages || [] } : null);
+    
+    // Mark as read
+    if (profile?.is_admin) {
+      await supabase
+        .from('commissions')
+        .update({ admin_unread: false })
+        .eq('id', commission.id);
+    } else {
+      await supabase
+        .from('commissions')
+        .update({ user_unread: false })
+        .eq('id', commission.id);
+    }
+    
+    fetchUserData(); // Refresh to update unread count
   };
 
-  const handleSubmitResponse = async () => {
-    if (!selectedCommission || !user) return;
+  const handleSendMessage = async () => {
+    if (!selectedCommission || !user || !newMessage.trim()) return;
 
     setSubmitting(true);
 
     try {
-      const { error } = await supabase
+      // Add message
+      const { error: messageError } = await supabase
+        .from('commission_messages')
+        .insert({
+          commission_id: selectedCommission.id,
+          sender_id: user.id,
+          message: newMessage.trim()
+        });
+
+      if (messageError) throw messageError;
+
+      // Update commission status and unread flags
+      const updates: any = {
+        status: newStatus,
+      };
+
+      if (profile?.is_admin) {
+        updates.user_unread = true; // Mark unread for user
+        updates.responded_at = new Date().toISOString();
+        updates.responded_by = user.id;
+      } else {
+        updates.admin_unread = true; // Mark unread for admin
+      }
+
+      const { error: updateError } = await supabase
         .from('commissions')
-        .update({
-          admin_response: response,
-          status: newStatus,
-          responded_at: new Date().toISOString(),
-          responded_by: user.id
-        })
+        .update(updates)
         .eq('id', selectedCommission.id);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
 
-      await fetchUserData();
-      setSelectedCommission(null);
-      setResponse("");
-      alert('Response sent successfully!');
+      // Send email notification
+      if (profile?.is_admin) {
+        // Admin sent message, notify user
+        await fetch('/api/send-notification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: selectedCommission.email,
+            subject: 'New message from Tangierine',
+            message: `You have a new message regarding your commission. Check your inbox at tangierine.com/profile`
+          })
+        });
+      }
+
+      // Refresh messages
+      await handleSelectCommission(selectedCommission);
+      setNewMessage("");
+      alert('Message sent!');
     } catch (err: any) {
       console.error('Error:', err);
-      alert('Failed to send response: ' + err.message);
+      alert('Failed to send message: ' + err.message);
     } finally {
       setSubmitting(false);
     }
@@ -295,12 +357,15 @@ export default function Profile() {
                     <div
                       key={commission.id}
                       onClick={() => handleSelectCommission(commission)}
-                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all relative ${
                         selectedCommission?.id === commission.id
                           ? 'border-indigo-500 bg-indigo-50'
                           : 'border-gray-200 hover:border-indigo-300 bg-white'
                       }`}
                     >
+                      {commission.admin_unread && (
+                        <div className="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+                      )}
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           <h3 className="font-bold text-gray-800 text-sm">{commission.name}</h3>
@@ -323,9 +388,6 @@ export default function Profile() {
                       </p>
                       <div className="flex justify-between items-center text-xs text-gray-500 mt-2">
                         <span>{new Date(commission.created_at).toLocaleDateString()}</span>
-                        {commission.admin_response && (
-                          <span className="text-green-600 font-semibold">✓ Responded</span>
-                        )}
                       </div>
                     </div>
                   ))
@@ -334,10 +396,10 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Commission Response Panel */}
+          {/* Commission Chat Panel */}
           {selectedCommission && (
             <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-2xl">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Respond to Commission</h2>
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">Commission Chat</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-3">
@@ -346,19 +408,37 @@ export default function Profile() {
                     <p className="text-gray-800">{selectedCommission.name} ({selectedCommission.email})</p>
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-gray-600">Details</label>
+                    <label className="text-sm font-semibold text-gray-600">Original Request</label>
                     <p className="text-gray-800 bg-gray-50 p-3 rounded-lg text-sm whitespace-pre-wrap">
                       {selectedCommission.details}
                     </p>
                   </div>
-                  {selectedCommission.admin_response && (
-                    <div>
-                      <label className="text-sm font-semibold text-gray-600">Previous Response</label>
-                      <p className="text-gray-800 bg-green-50 p-3 rounded-lg text-sm">
-                        {selectedCommission.admin_response}
-                      </p>
+
+                  {/* Message History */}
+                  <div>
+                    <label className="text-sm font-semibold text-gray-600 mb-2 block">Conversation</label>
+                    <div className="bg-gray-50 p-3 rounded-lg max-h-64 overflow-y-auto space-y-2">
+                      {selectedCommission.messages && selectedCommission.messages.length > 0 ? (
+                        selectedCommission.messages.map((msg) => (
+                          <div
+                            key={msg.id}
+                            className={`p-2 rounded-lg text-sm ${
+                              msg.sender_id === user!.id
+                                ? 'bg-indigo-100 ml-8'
+                                : 'bg-white mr-8'
+                            }`}
+                          >
+                            <p className="font-semibold text-xs text-gray-600 mb-1">
+                              {msg.users?.username || 'User'} • {new Date(msg.created_at).toLocaleString()}
+                            </p>
+                            <p className="text-gray-800">{msg.message}</p>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-gray-500 text-sm">No messages yet</p>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
 
                 <div className="space-y-4">
@@ -367,7 +447,7 @@ export default function Profile() {
                     <select
                       value={newStatus}
                       onChange={(e) => setNewStatus(e.target.value)}
-                      className="w-full p-2 border text-gray-600 border-gray-300 rounded-xl focus:border-indigo-500 focus:outline-none"
+                      className="w-full p-2 border border-gray-300 text-gray-700 rounded-xl focus:border-indigo-500 focus:outline-none"
                     >
                       <option value="pending">Pending</option>
                       <option value="approved">Approved</option>
@@ -378,28 +458,28 @@ export default function Profile() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Response</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Your Message</label>
                     <textarea
-                      value={response}
-                      onChange={(e) => setResponse(e.target.value)}
-                      placeholder="Type your response..."
-                      className="w-full h-32 p-3 border text-gray-600 border-gray-300 rounded-xl focus:border-indigo-500 focus:outline-none resize-none"
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      placeholder="Type your message..."
+                      className="w-full h-32 p-3 border border-gray-300 text-gray-700 rounded-xl focus:border-indigo-500 focus:outline-none resize-none"
                     />
                   </div>
 
                   <div className="flex gap-2">
                     <button
-                      onClick={handleSubmitResponse}
-                      disabled={!response || submitting}
-                      className="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 rounded-xl transition disabled:opacity-50 cursor-pointer"
+                      onClick={handleSendMessage}
+                      disabled={!newMessage.trim() || submitting}
+                      className="flex-1 bg-[#50608A] hover:bg-pink-500 text-white font-bold py-2 rounded-xl transition disabled:opacity-50 cursor-pointer"
                     >
-                      {submitting ? 'Sending...' : 'Send Response'}
+                      {submitting ? 'Sending...' : 'Send Message'}
                     </button>
                     <button
                       onClick={() => setSelectedCommission(null)}
-                      className="px-6 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 rounded-xl transition"
+                      className="px-6 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 rounded-xl transition cursor-pointer"
                     >
-                      Cancel
+                      Close
                     </button>
                   </div>
                 </div>
@@ -480,7 +560,7 @@ export default function Profile() {
           )}
         </div>
 
-        {/* Commissions */}
+        {/* Commissions with Chat */}
         <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-md">
           <h3 className="text-lg font-bold text-gray-800 mb-2">My Commissions</h3>
           {commissions.length === 0 ? (
@@ -490,15 +570,20 @@ export default function Profile() {
               {commissions.map((comm) => (
                 <div key={comm.id} className="p-4 rounded-lg bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100">
                   <div className="flex justify-between items-start mb-2">
-                    <span className={`text-xs px-3 py-1 rounded-full font-semibold ${
-                      comm.status === 'pending' ? 'bg-yellow-200 text-yellow-800' :
-                      comm.status === 'approved' ? 'bg-green-200 text-green-800' :
-                      comm.status === 'in_progress' ? 'bg-blue-200 text-blue-800' :
-                      comm.status === 'completed' ? 'bg-purple-200 text-purple-800' :
-                      'bg-red-200 text-red-800'
-                    }`}>
-                      {comm.status.replace('_', ' ').toUpperCase()}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs px-3 py-1 rounded-full font-semibold ${
+                        comm.status === 'pending' ? 'bg-yellow-200 text-yellow-800' :
+                        comm.status === 'approved' ? 'bg-green-200 text-green-800' :
+                        comm.status === 'in_progress' ? 'bg-blue-200 text-blue-800' :
+                        comm.status === 'completed' ? 'bg-purple-200 text-purple-800' :
+                        'bg-red-200 text-red-800'
+                      }`}>
+                        {comm.status.replace('_', ' ').toUpperCase()}
+                      </span>
+                      {comm.user_unread && (
+                        <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                      )}
+                    </div>
                     <span className="text-xs text-gray-500">
                       {new Date(comm.created_at).toLocaleDateString()}
                     </span>
@@ -509,28 +594,90 @@ export default function Profile() {
                     {comm.details.length > 100 ? '...' : ''}
                   </p>
 
-                  {comm.admin_response && (
-                    <div className="mt-3 p-3 bg-white/80 rounded-lg border-l-4 border-indigo-500">
-                      <p className="text-xs font-semibold text-indigo-700 mb-1">Admin Response:</p>
-                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{comm.admin_response}</p>
-                      <p className="text-xs text-gray-500 mt-2">
-                        Responded: {new Date(comm.responded_at!).toLocaleDateString()}
-                      </p>
-                    </div>
-                  )}
-                  
-                  {!comm.admin_response && comm.status === 'pending' && (
-                    <p className="text-xs text-gray-500 italic mt-2">Waiting for admin response...</p>
-                  )}
+                  <button
+                    onClick={() => handleSelectCommission(comm)}
+                    className="text-xs text-[#50608A] hover:text-pink-500 font-semibold cursor-pointer"
+                  >
+                    View Conversation →
+                  </button>
                 </div>
               ))}
             </div>
           )}
         </div>
 
+        {/* User Chat Modal */}
+        {selectedCommission && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">Commission Chat</h3>
+              
+              <div className="mb-4">
+                <label className="text-sm font-semibold text-gray-600">Your Request</label>
+                <p className="text-sm text-gray-800 bg-gray-50 p-3 rounded-lg">
+                  {selectedCommission.details}
+                </p>
+              </div>
+
+              {/* Messages */}
+              <div className="mb-4">
+                <label className="text-sm font-semibold text-gray-600 mb-2 block">Conversation</label>
+                <div className="bg-gray-50 p-3 rounded-lg max-h-64 overflow-y-auto space-y-2">
+                  {selectedCommission.messages && selectedCommission.messages.length > 0 ? (
+                    selectedCommission.messages.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`p-2 rounded-lg text-sm ${
+                          msg.sender_id === user!.id
+                            ? 'bg-indigo-100 ml-8'
+                            : 'bg-white mr-8'
+                        }`}
+                      >
+                        <p className="font-semibold text-xs text-gray-600 mb-1">
+                          {msg.sender_id === user!.id ? 'You' : 'Admin'} • {new Date(msg.created_at).toLocaleString()}
+                        </p>
+                        <p className="text-gray-800">{msg.message}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 text-sm">No messages yet</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Reply */}
+              <div className="mb-4">
+                <label className="text-sm font-semibold text-gray-700 mb-2 block">Your Reply</label>
+                <textarea
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  placeholder="Type your message..."
+                  className="w-full h-24 p-3 border border-gray-300 text-gray-700 rounded-xl focus:border-indigo-500 focus:outline-none resize-none"
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={handleSendMessage}
+                  disabled={!newMessage.trim() || submitting}
+                  className="flex-1 bg-[#50608A] hover:bg-pink-600 text-white font-bold py-2 rounded-xl transition disabled:opacity-50 cursor-pointer"
+                >
+                  {submitting ? 'Sending...' : 'Send Reply'}
+                </button>
+                <button
+                  onClick={() => setSelectedCommission(null)}
+                  className="px-6 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 rounded-xl transitio cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <button
           onClick={handleLogout}
-          className="bg-indigo-500 text-white p-2 font-semibold rounded-2xl hover:bg-indigo-600 cursor-pointer"
+          className="bg-[#50608A] text-white p-2 font-semibold rounded-2xl hover:bg-pink-500/70 cursor-pointer"
         >
           Log Out
         </button>
