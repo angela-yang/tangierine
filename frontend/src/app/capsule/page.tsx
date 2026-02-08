@@ -127,7 +127,7 @@ export default function Capsule() {
 
   return (
     <div className="absolute bg-[url('/images/bg.png')] bg-cover bg-center w-full min-h-screen max-h-[130vh] overflow-hidden">
-      <div className="hidden md:flex pointer-events-none fixed inset-0 border-[30px] border-[#3E1F69] z-10" />
+      <div className="hidden md:flex pointer-events-none fixed inset-0 border-[30px] border-[#3E1F69] z-100" />
       <HomeNav />
       
       {/* Coin Display */}
@@ -138,7 +138,7 @@ export default function Capsule() {
         </div>
       </div>
 
-      {/* Debug: Button to test earning coins */}
+      {/* Button to test earning coins */}
       <button
         onClick={() => earnCoins(5)}
         className="fixed top-24 left-8 z-30 bg-[#7280A7] text-white px-4 py-2 rounded-lg shadow-lg hover:bg-[#50608A] cursor-pointer"
@@ -161,7 +161,7 @@ export default function Capsule() {
         />
       </div>
       
-      <div className="max-w-6xl mx-auto px-6 py-14 pt-[70px] relative z-20">
+      <div className="max-w-6xl mx-auto py-14 px-6 pt-[80px] relative z-20">
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold text-gray-100 mb-3">Capsule Toy</h1>
@@ -170,20 +170,38 @@ export default function Capsule() {
           </p>
         </div>
 
-        {/* Capsule Machine */}
-        <div className="relative flex flex-col items-center mb-32">
+        {/* Instructions */}
+        <p className="text-gray-200 text-center mt-10 text-lg font-semibold -z-10">
+          {coins > 0 
+            ? 'Click the blue knob to spend 1 coin!' 
+            : 'Click the blue knob to dispense!'}
+        </p>
+
+        <div className="relative flex flex-col items-center">
           <div className="relative flex flex-col items-center">
-            {/* Glass Dome */}
-            <div className="relative w-80 h-80 bg-[#7280A7]/40 rounded-full border-8 border-[#7280A7] shadow-2xl overflow-hidden backdrop-blur-sm">
+            <div className="relative">
+              <img 
+                src="/images/capsule.png" 
+                alt="Capsule Machine"
+                className="w-[40vw] h-auto object-contain"
+              />
+              
+              {/* Spinning Capsules Overlay*/}
               <motion.div
-                className="absolute inset-0 flex flex-wrap gap-4 p-8 justify-center items-center"
+                className="absolute flex flex-wrap gap-3 p-4 justify-center items-center pointer-events-none"
+                style={{
+                  top: '20%',
+                  left: '32%',
+                  width: '35%',
+                  height: '35%'
+                }}
                 animate={isSpinning ? { rotate: 360 } : {}}
                 transition={{ duration: 2, ease: "easeInOut" }}
               >
                 {capsuleColors.slice(0, 6).map((color, i) => (
                   <div
                     key={i}
-                    className="w-14 h-14 rounded-full shadow-lg"
+                    className="w-12 h-12 rounded-full shadow-lg"
                     style={{
                       background: `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)`,
                       transform: `rotate(${i * 30}deg)`
@@ -191,33 +209,44 @@ export default function Capsule() {
                   />
                 ))}
               </motion.div>
-            </div>
-
-            {/* Machine Base */}
-            <div className="w-80 h-40 bg-[#C36880] rounded-b-3xl border-8 border-gray-700 shadow-2xl -mt-4 relative">
-              <div className="absolute top-4 left-1/2 -translate-x-1/2 w-20 h-6 bg-gray-900 rounded-sm shadow-inner flex items-center justify-center"/>
               
-              {/* Turn Knob */}
+              {/* Turn Knob Button */}
               <motion.button
                 onClick={handleTurnKnob}
-                disabled={isSpinning}
-                className="absolute -right-8 top-1/2 -translate-y-1/2 w-20 h-20 bg-[#EBC794] rounded-full border-4 border-[#CB9861] shadow-xl hover:bg-[#CB9861] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                className="absolute cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed bg-[#B5BCD0] rounded-full border-4 border-[#5A3535]"
+                style={{
+                  right: '52%',
+                  top: '70%',
+                  width: '8%',
+                  height: '8%'
+                }}
                 whileHover={!isSpinning ? { scale: 1.1 } : {}}
                 whileTap={!isSpinning ? { rotate: 90 } : {}}
                 animate={isSpinning ? { rotate: 360 } : {}}
                 transition={isSpinning ? { duration: 2, ease: "linear", repeat: Infinity } : {}}
               >
-                <span className="text-2xl font-black text-yellow-900 p-4">
-                  {isSpinning ? '⟳' : 'TURN'}
-                </span>
+                <div className="w-full h-full rounded-full transition flex items-center justify-center">
+                  {isSpinning && (
+                    <span className="text-3xl font-bold text-gray-600 drop-shadow-l">⟳</span>
+                  )}
+                  {!isSpinning && (
+                    <span className="text-sm text-center font-bold text-gray-600">TURN</span>
+                  )}
+                </div>
               </motion.button>
 
-              {/* Dispensing Tray */}
-              <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-40 h-16 bg-gray-800 rounded-b-lg border-4 border-gray-700 shadow-lg flex items-center justify-center">
+              {/* Dispensing Tray*/}
+              <div 
+                className="absolute left-1/2 -translate-x-1/2 w-40 h-16 flex items-center justify-center"
+                style={{
+                  bottom: '8%',
+                  left: '43%'
+                }}
+              >
                 <AnimatePresence>
                   {capsuleFalling && currentReward && (
                     <motion.div
-                      initial={{ y: -250, opacity: 0 }}
+                      initial={{ y: -300, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
                       transition={{ type: "spring", stiffness: 200, damping: 15 }}
                       className={`absolute cursor-pointer ${!canClick ? 'pointer-events-none' : ''}`}
@@ -258,13 +287,6 @@ export default function Capsule() {
               </div>
             </div>
           </div>
-
-          {/* Instructions */}
-          <p className="text-gray-200 text-center mt-20 text-lg font-semibold">
-            {coins > 0 
-              ? 'Click the yellow knob to spend 1 coin!' 
-              : 'Click the yellow knob to dispense!'}
-          </p>
         </div>
 
         <ShopItem label="Lights" imgSrc="/images/light1.png" width={50} positionX={30} positionY={8} offsetX={offset.x} offsetY={offset.y} depthX={1.0} depthY={1.0}/>
