@@ -190,7 +190,7 @@ export default function Capsule() {
               <motion.div
                 className="absolute flex flex-wrap gap-3 p-4 justify-center items-center pointer-events-none"
                 style={{
-                  top: '20%',
+                  top: '18%',
                   left: '32%',
                   width: '35%',
                   height: '35%'
@@ -201,10 +201,12 @@ export default function Capsule() {
                 {capsuleColors.slice(0, 6).map((color, i) => (
                   <div
                     key={i}
-                    className="w-12 h-12 rounded-full shadow-lg"
+                    className="rounded-full shadow-lg"
                     style={{
                       background: `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)`,
-                      transform: `rotate(${i * 30}deg)`
+                      transform: `rotate(${i * 30}deg)`,
+                      width: '25%',
+                      height: '25%',
                     }}
                   />
                 ))}
