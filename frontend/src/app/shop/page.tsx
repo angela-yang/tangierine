@@ -11,12 +11,12 @@ const products = [
   { id: 1, name: "Digital Commission", price: 20, image: "/images/products/commission.png", shelf: 1, description: "Custom digital artwork created just for you!" },
   { id: 2, name: "Print — Small", price: 10, image: "/images/products/print.png", shelf: 1, description: "High-quality small print (8x10 inches)" },
   { id: 3, name: "Print — Large", price: 15, image: "/images/products/print.png", shelf: 1, description: "High-quality large print (11x14 inches)" },
-  { id: 4, name: "Sticker Pack", price: 5, image: "/images/products/sticker.png", shelf: 2, description: "Pack of 5 stickers" },
+  { id: 4, name: "Design Commission", price: 5, image: "/images/products/design.png", shelf: 2, description: "Help with branding or designs!" },
   { id: 5, name: "Blind Pack", price: 15, image: "/images/products/blind.png", shelf: 2, description: "Mystery item!" },
   { id: 6, name: "Print — Small", price: 10, image: "/images/products/print.png", shelf: 2, description: "High-quality small print (8x10 inches)" },
-  { id: 7, name: "Print — Large", price: 15, image: "/images/products/print.png", shelf: 3, description: "High-quality large print (11x14 inches)" },
-  { id: 8, name: "Sticker Pack", price: 5, image: "/images/products/sticker.png", shelf: 3, description: "Pack of 5 stickers" },
-  { id: 9, name: "Blind Pack", price: 15, image: "/images/products/blind.png", shelf: 3, description: "Mystery item!" },
+  { id: 7, name: "Derpy Sticker", price: 4, image: "/images/products/derpy.png", shelf: 3, description: "Derpy!" },
+  { id: 8, name: "Pokemon Stickers", price: 10, image: "/images/products/pokemon2.png", shelf: 3, description: "Catch em all!" },
+  { id: 9, name: "Appa Sticker", price: 4, image: "/images/products/stickers.png", shelf: 3, description: "Appa!" },
 ];
 
 export default function Shop() {
