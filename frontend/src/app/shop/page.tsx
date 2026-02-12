@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import HomeNav from "../../components/HomeNav";
 import ShopItem from '../../components/ShopItem';
+import { supabase } from '../../app/lib/supabase';
+import { useAuth } from '../../app/lib/AuthContext';
 import { FaShoppingCart, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 type Product = {
@@ -15,6 +17,18 @@ type Product = {
   type: 'sticker' | 'print' | 'blind-pack' | 'commission';
   collection: 'pokemon' | 'pikmin' | 'smiski' | 'misc';
   description: string;
+};
+
+type Review = {
+  id: string;
+  user_id: string;
+  product_id: number;
+  rating: number;
+  comment: string;
+  created_at: string;
+  users?: {
+    username: string;
+  };
 };
 
 const products: Product[] = [
@@ -52,6 +66,11 @@ export default function Shop() {
   const [viewingStack, setViewingStack] = useState<Product[] | null>(null);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
+  const { user } = useAuth();
+  const [reviews, setReviews] = useState<Record<number, Review[]>>({});
+  const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
+  const [adding, setAdding] = useState(false);
+  const [quantity, setQuantity] = useState(1);
   
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -63,6 +82,11 @@ export default function Shop() {
 
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+
+  // Fetch all reviews on mount
+  useEffect(() => {
+    fetchAllReviews();
   }, []);
 
   // Keyboard nav
@@ -90,11 +114,122 @@ export default function Shop() {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [viewingStack, currentCardIndex, isFlipped]);
 
+  const fetchAllReviews = async () => {
+    const { data } = await supabase
+      .from('reviews')
+      .select(`
+        *,
+        users (username)
+      `)
+      .order('created_at', { ascending: false });
+    
+    if (data) {
+      const reviewsByProduct: Record<number, Review[]> = {};
+      data.forEach((review) => {
+        if (!reviewsByProduct[review.product_id]) {
+          reviewsByProduct[review.product_id] = [];
+        }
+        reviewsByProduct[review.product_id].push(review);
+      });
+      setReviews(reviewsByProduct);
+    }
+  };
+
+  const handleAddToCart = async (e: React.MouseEvent, product: Product) => {
+    e.stopPropagation(); // Prevent card flip
+    
+    if (!user) {
+      alert('Please log in to add items to cart');
+      return;
+    }
+
+    setAdding(true);
+
+    try {
+      const { data: existing } = await supabase
+        .from('cart_items')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('product_id', product.id)
+        .single();
+
+      if (existing) {
+        const { error } = await supabase
+          .from('cart_items')
+          .update({ quantity: existing.quantity + quantity })
+          .eq('id', existing.id);
+        
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('cart_items')
+          .insert({
+            user_id: user.id,
+            product_id: product.id,
+            product_name: product.name,
+            product_image: product.image,
+            price: product.price,
+            quantity: quantity
+          });
+        
+        if (error) throw error;
+      }
+
+      alert('Added to cart!');
+      setQuantity(1); // Reset quantity
+    } catch (err: any) {
+      console.error('Cart error:', err);
+      alert('Failed to add to cart');
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const handleSubmitReview = async (e: React.MouseEvent, productId: number) => {
+    e.stopPropagation(); // Prevent card flip
+    
+    if (!user) {
+      alert('Please log in to leave a review');
+      return;
+    }
+
+    if (!newReview.comment.trim()) {
+      alert('Please write a comment');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('reviews')
+        .insert({
+          user_id: user.id,
+          product_id: productId,
+          rating: newReview.rating,
+          comment: newReview.comment
+        });
+
+      if (error) throw error;
+
+      setNewReview({ rating: 5, comment: '' });
+      await fetchAllReviews();
+      alert('Review submitted!');
+    } catch (err: any) {
+      console.error('Review error:', err);
+      alert('Failed to submit review');
+    }
+  };
+
+  const getAverageRating = (productId: number) => {
+    const productReviews = reviews[productId] || [];
+    if (productReviews.length === 0) return 'No ratings yet';
+    const avg = productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length;
+    return avg.toFixed(1);
+  };
+
   const filteredProducts = selectedCollection === 'all' 
     ? products 
     : products.filter(p => p.collection === selectedCollection);
 
-  // Group by collection
   const groupedProducts = filteredProducts.reduce((acc, product) => {
     const key = product.collection;
     if (!acc[key]) acc[key] = [];
@@ -102,28 +237,33 @@ export default function Shop() {
     return acc;
   }, {} as Record<string, Product[]>);
 
-  const openStack = (stack: Product[]) => {
+  const openStack = (stack: Product[], clickedProduct: Product) => {
+    const startIndex = stack.findIndex(p => p.id === clickedProduct.id);
     setViewingStack(stack);
-    setCurrentCardIndex(0);
+    setCurrentCardIndex(startIndex >= 0 ? startIndex : 0);
     setIsFlipped(false);
+    setQuantity(1);
   };
 
   const closeViewer = () => {
     setViewingStack(null);
     setCurrentCardIndex(0);
     setIsFlipped(false);
+    setQuantity(1);
   };
 
   const nextCard = () => {
-    if (viewingStack && currentCardIndex < viewingStack.length - 1) {
-      setCurrentCardIndex(prev => prev + 1);
+    if (viewingStack) {
+      // Loop back to beginning
+      setCurrentCardIndex(prev => (prev + 1) % viewingStack.length);
       setIsFlipped(false);
     }
   };
 
   const prevCard = () => {
-    if (currentCardIndex > 0) {
-      setCurrentCardIndex(prev => prev - 1);
+    if (viewingStack) {
+      // Loop to end
+      setCurrentCardIndex(prev => (prev - 1 + viewingStack.length) % viewingStack.length);
       setIsFlipped(false);
     }
   };
@@ -167,35 +307,23 @@ export default function Shop() {
 
         {/* Filters */}
         <div className="flex flex-wrap justify-center gap-3 mb-12">
-          <button onClick={() => setSelectedCollection('all')} className={`bg-[#6F81AA] hover:bg-[#D16280] transition-all transform hover:scale-105 cursor-pointer rounded-full p-1 px-3 transition filter-btn ${selectedCollection === 'all' ? 'active' : ''}`}>All Collections</button>
-          <button onClick={() => setSelectedCollection('pokemon')} className={`bg-[#6F81AA] hover:bg-[#D16280] transition-all transform hover:scale-105 cursor-pointer rounded-full p-1 px-3 transition filter-btn ${selectedCollection === 'pokemon' ? 'active' : ''}`}>Pokémon</button>
-          <button onClick={() => setSelectedCollection('pikmin')} className={`bg-[#6F81AA] hover:bg-[#D16280] transition-all transform hover:scale-105 cursor-pointer rounded-full p-1 px-3 transition filter-btn ${selectedCollection === 'pikmin' ? 'active' : ''}`}>Pikmin</button>
-          <button onClick={() => setSelectedCollection('smiski')} className={`bg-[#6F81AA] hover:bg-[#D16280] transition-all transform hover:scale-105 cursor-pointer rounded-full p-1 px-3 transition filter-btn ${selectedCollection === 'smiski' ? 'active' : ''}`}>Smiski</button>
-          <button onClick={() => setSelectedCollection('misc')} className={`bg-[#6F81AA] hover:bg-[#D16280] transition-all transform hover:scale-105 cursor-pointer rounded-full p-1 px-3 transition filter-btn ${selectedCollection === 'misc' ? 'active' : ''}`}>Misc</button>
+          <button onClick={() => setSelectedCollection('all')} className={`bg-[#6F81AA] hover:bg-[#D16280] transition-all transform hover:scale-105 cursor-pointer rounded-full p-1 px-3 filter-btn ${selectedCollection === 'all' ? 'active' : ''}`}>All Collections</button>
+          <button onClick={() => setSelectedCollection('pokemon')} className={`bg-[#6F81AA] hover:bg-[#D16280] transition-all transform hover:scale-105 cursor-pointer rounded-full p-1 px-3 filter-btn ${selectedCollection === 'pokemon' ? 'active' : ''}`}>Pokémon</button>
+          <button onClick={() => setSelectedCollection('pikmin')} className={`bg-[#6F81AA] hover:bg-[#D16280] transition-all transform hover:scale-105 cursor-pointer rounded-full p-1 px-3 filter-btn ${selectedCollection === 'pikmin' ? 'active' : ''}`}>Pikmin</button>
+          <button onClick={() => setSelectedCollection('smiski')} className={`bg-[#6F81AA] hover:bg-[#D16280] transition-all transform hover:scale-105 cursor-pointer rounded-full p-1 px-3 filter-btn ${selectedCollection === 'smiski' ? 'active' : ''}`}>Smiski</button>
+          <button onClick={() => setSelectedCollection('misc')} className={`bg-[#6F81AA] hover:bg-[#D16280] transition-all transform hover:scale-105 cursor-pointer rounded-full p-1 px-3 filter-btn ${selectedCollection === 'misc' ? 'active' : ''}`}>Misc</button>
         </div>
 
         {/* Shelves */}
         <div className="space-y-12">
           {Object.entries(groupedProducts).map(([collectionName, collectionProducts]) => (
             <div key={collectionName}>
-              {/* Shelf */}
               <div className="relative bg-[#C88261] rounded-lg p-8 border-8 border-[#975736]">
                 <div className="flex justify-center mb-6">
-                  <div className="bg-[#F1EBE3] border-2 border-[#915E35] px-8 py-3 shadow-lg transform">
+                  <div className="bg-[#F1EBE3] border-2 border-[#915E35] px-8 py-3 shadow-lg">
                     <h2 className="text-2xl font-bold text-gray-800 capitalize">
                       {collectionName} Collection
                     </h2>
-                  </div>
-                </div>
-                <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center">
-                  <div className="w-px h-6 bg-gray-400"></div>
-                  <div className="bg-yellow-100 border-2 border-yellow-600 px-6 py-2 rounded-md shadow-md">
-                    <p className="text-sm font-bold text-gray-800 text-center">
-                      {collectionProducts.length} Items
-                    </p>
-                    <p className="text-xs text-gray-600 text-center">
-                      ${collectionProducts[0].price} each
-                    </p>
                   </div>
                 </div>
 
@@ -207,7 +335,7 @@ export default function Shop() {
                     <motion.div
                       key={product.id}
                       className="group cursor-pointer relative"
-                      onClick={() => openStack(collectionProducts)}
+                      onClick={() => openStack(collectionProducts, product)}
                       whileHover={{ y: -12, scale: 1.05 }}
                       transition={{ type: "spring", stiffness: 300 }}
                       style={{
@@ -229,6 +357,18 @@ export default function Shop() {
                       </div>
                     </motion.div>
                   ))}
+                </div>
+
+                <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center">
+                  <div className="w-px h-6 bg-gray-400"></div>
+                  <div className="bg-yellow-100 border-2 border-yellow-600 px-6 py-2 rounded-md shadow-md">
+                    <p className="text-sm font-bold text-gray-800 text-center">
+                      {collectionProducts.length} Items
+                    </p>
+                    <p className="text-xs text-gray-600 text-center">
+                      ${collectionProducts[0].price} each
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -263,14 +403,16 @@ export default function Shop() {
                   const isActive = index === currentCardIndex;
                   const offset = index - currentCardIndex;
                   const isBehind = offset < 0;
+                  const productReviews = reviews[card.id] || [];
                   
                   return (
                     <motion.div
                       key={card.id}
-                      className="absolute cursor-pointer"
+                      className="absolute"
                       style={{
                         zIndex: isBehind ? index : viewingStack.length + 1 - index,
                         perspective: '1000px',
+                        pointerEvents: isActive ? 'auto' : 'none',
                       }}
                       initial={false}
                       animate={{
@@ -289,7 +431,7 @@ export default function Shop() {
                       onClick={isActive ? toggleFlip : undefined}
                     >
                       <motion.div
-                        className="relative w-[400px] h-[500px]"
+                        className="relative w-[450px] h-[550px]"
                         style={{ transformStyle: 'preserve-3d' }}
                         animate={{ rotateY: isActive && isFlipped ? 180 : 0 }}
                         transition={{ duration: 0.6, type: "spring" }}
@@ -326,10 +468,43 @@ export default function Shop() {
                               <p className="text-3xl font-bold text-[#7280A7] mb-4">
                                 ${card.price}
                               </p>
-                              <button className="w-full bg-[#7280A7] hover:bg-[#50608A] text-white py-3 rounded-full font-bold transition cursor-pointer mb-2">
-                                Add to Cart
-                              </button>
-                              <p className="text-xs text-gray-500 italic">
+
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-center gap-3">
+                                  <label className="text-sm font-semibold text-gray-700">Quantity:</label>
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setQuantity(Math.max(1, quantity - 1));
+                                      }}
+                                      className="w-8 h-8 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-bold cursor-pointer"
+                                    >
+                                      −
+                                    </button>
+                                    <span className="w-12 text-center font-semibold text-gray-800">{quantity}</span>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setQuantity(quantity + 1);
+                                      }}
+                                      className="w-8 h-8 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-bold cursor-pointer"
+                                    >
+                                      +
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <button
+                                  onClick={(e) => handleAddToCart(e, card)}
+                                  disabled={adding}
+                                  className="w-full bg-[#7280A7] hover:bg-[#50608A] text-white font-bold py-3 rounded-full transition disabled:opacity-50 cursor-pointer"
+                                >
+                                  {adding ? 'Adding...' : 'Add to Cart'}
+                                </button>
+                              </div>
+
+                              <p className="text-xs text-gray-500 italic mt-2">
                                 Click card to see details & reviews →
                               </p>
                             </motion.div>
@@ -338,7 +513,7 @@ export default function Shop() {
 
                         {/* BACK */}
                         <div 
-                          className="absolute inset-0 bg-[#7280A7] rounded-3xl shadow-2xl p-8 flex flex-col text-white overflow-y-auto"
+                          className="absolute inset-0 bg-[#7280A7] rounded-3xl shadow-2xl p-6 flex flex-col text-white overflow-y-auto"
                           style={{ 
                             backfaceVisibility: 'hidden',
                             WebkitBackfaceVisibility: 'hidden',
@@ -349,62 +524,108 @@ export default function Shop() {
                             {card.name}
                           </h3>
 
-                          <div className="mb-6">
+                          <div className="mb-4">
                             <h4 className="text-sm font-semibold uppercase tracking-wide mb-2 opacity-80">
                               About This Sticker
                             </h4>
                             <p className="text-sm leading-relaxed">
-                              {card.description}
-                            </p>
-                            <p className="text-sm leading-relaxed mt-2">
-                              High-quality vinyl sticker, waterproof and UV resistant. 
+                              {card.description} - High-quality vinyl sticker, waterproof and UV resistant. 
                               Perfect for laptops, water bottles, notebooks, and more!
                             </p>
                           </div>
 
-                          <div className="mb-6">
+                          <div className="mb-4">
                             <h4 className="text-sm font-semibold uppercase tracking-wide mb-2 opacity-80">
                               Specifications
                             </h4>
                             <ul className="text-sm space-y-1">
                               <li>• Size: 3" x 3"</li>
                               <li>• Material: Vinyl</li>
-                              <li>• Finish: Glossy</li>
                               <li>• Waterproof & UV resistant</li>
                             </ul>
                           </div>
 
-                          <div className="flex-1">
+                          <div className="flex-1 overflow-y-auto">
                             <h4 className="text-sm font-semibold uppercase tracking-wide mb-2 opacity-80">
                               Customer Reviews
                             </h4>
-                            <div className="space-y-3">
-                              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
-                                <div className="flex items-center gap-1 mb-1">
-                                  <span className="text-yellow-400">★★★★★</span>
-                                  <span className="text-xs opacity-70">- Sarah M.</span>
+
+                            <div className="mb-4">
+                              <p className="text-sm mb-2">
+                                ⭐ {getAverageRating(card.id)} ({productReviews.length} reviews)
+                              </p>
+                            </div>
+
+                            {/* Review Form */}
+                            {user && (
+                              <div className="bg-white/20 backdrop-blur-sm p-3 rounded-xl mb-4">
+                                <h4 className="font-semibold mb-2 text-sm">Leave a Review</h4>
+                                <div className="flex items-center gap-1 mb-2">
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <button
+                                      key={star}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setNewReview({ ...newReview, rating: star });
+                                      }}
+                                      className="text-xl cursor-pointer"
+                                    >
+                                      {star <= newReview.rating ? '⭐' : '☆'}
+                                    </button>
+                                  ))}
                                 </div>
-                                <p className="text-xs">
-                                  "Super cute! Quality is amazing and the colors are so vibrant!"
-                                </p>
+                                <textarea
+                                  value={newReview.comment}
+                                  onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                                  onClick={(e) => e.stopPropagation()}
+                                  placeholder="Write your review..."
+                                  className="w-full p-2 border border-gray-300 text-gray-700 rounded-lg mb-2 resize-none text-sm"
+                                  rows={2}
+                                />
+                                <button
+                                  onClick={(e) => handleSubmitReview(e, card.id)}
+                                  className="bg-white text-[#7280A7] hover:bg-gray-100 px-4 py-2 rounded-lg font-semibold text-sm cursor-pointer"
+                                >
+                                  Submit Review
+                                </button>
                               </div>
-                              
-                              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
-                                <div className="flex items-center gap-1 mb-1">
-                                  <span className="text-yellow-400">★★★★★</span>
-                                  <span className="text-xs opacity-70">- Alex K.</span>
-                                </div>
-                                <p className="text-xs">
-                                  "Perfect size and really durable. Love it!"
-                                </p>
-                              </div>
+                            )}
+
+                            {/* Reviews List */}
+                            <div className="space-y-2 max-h-48 overflow-y-auto">
+                              {productReviews.length === 0 ? (
+                                <p className="text-white/70 text-sm">No reviews yet. Be the first!</p>
+                              ) : (
+                                productReviews.map((review) => (
+                                  <div key={review.id} className="bg-white/20 backdrop-blur-sm p-3 rounded-lg">
+                                    <div className="flex justify-between items-start mb-1">
+                                      <div>
+                                        <p className="font-semibold text-sm">
+                                          {review.users?.username || 'Anonymous'}
+                                        </p>
+                                        <p className="text-xs text-yellow-300">
+                                          {'⭐'.repeat(review.rating)}
+                                        </p>
+                                      </div>
+                                      <span className="text-xs opacity-70">
+                                        {new Date(review.created_at).toLocaleDateString()}
+                                      </span>
+                                    </div>
+                                    <p className="text-sm">{review.comment}</p>
+                                  </div>
+                                ))
+                              )}
                             </div>
                           </div>
 
                           <div className="mt-4 text-center">
-                            <p className="text-3xl font-bold mb-4">${card.price}</p>
-                            <button className="w-full bg-white text-[#7280A7] py-3 rounded-full font-bold hover:bg-gray-100 transition cursor-pointer">
-                              Add to Cart
+                            <p className="text-3xl font-bold mb-3">${card.price}</p>
+                            <button 
+                              onClick={(e) => handleAddToCart(e, card)}
+                              disabled={adding}
+                              className="w-full bg-white text-[#7280A7] py-3 rounded-full font-bold hover:bg-gray-100 transition cursor-pointer disabled:opacity-50"
+                            >
+                              {adding ? 'Adding...' : 'Add to Cart'}
                             </button>
                             <p className="text-xs mt-2 opacity-70">
                               Click card to flip back →
@@ -419,16 +640,14 @@ export default function Shop() {
                 {/* Nav Arrows */}
                 <button
                   onClick={prevCard}
-                  disabled={currentCardIndex === 0}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-20 bg-white/90 hover:bg-white p-4 rounded-full shadow-lg disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition z-50"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-20 bg-white/90 hover:bg-white p-4 rounded-full shadow-lg cursor-pointer transition z-50"
                 >
                   <FaChevronLeft size={32} className="text-gray-800" />
                 </button>
                 
                 <button
                   onClick={nextCard}
-                  disabled={currentCardIndex === viewingStack.length - 1}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-20 bg-white/90 hover:bg-white p-4 rounded-full shadow-lg disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition z-50"
+                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-20 bg-white/90 hover:bg-white p-4 rounded-full shadow-lg cursor-pointer transition z-50"
                 >
                   <FaChevronRight size={32} className="text-gray-800" />
                 </button>
@@ -450,10 +669,6 @@ export default function Shop() {
       </AnimatePresence>
 
       <style jsx>{`
-        .filter-btn {
-          @apply px-6 py-2 rounded-full font-semibold transition cursor-pointer;
-          @apply bg-white/80 text-gray-700 hover:bg-white;
-        }
         .filter-btn.active {
           @apply bg-[#C36880] text-white shadow-lg;
         }
