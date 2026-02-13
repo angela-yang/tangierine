@@ -426,7 +426,7 @@ export default function Shop() {
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
-              className="bg-white rounded-3xl p-8 max-w-2xl w-full"
+              className="bg-white rounded-3xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <button
@@ -445,12 +445,12 @@ export default function Shop() {
                   />
                 </div>
                 
-                <div>
+                <div className="flex flex-col">
                   <h3 className="text-3xl font-bold text-gray-800 mb-4">{selectedPrint.name}</h3>
                   <p className="text-gray-600 mb-4">{selectedPrint.description}</p>
                   <p className="text-4xl font-bold text-[#7280A7] mb-6">${selectedPrint.price}</p>
                   
-                  <div className="space-y-4">
+                  <div className="space-y-4 mb-6">
                     <div className="flex items-center gap-3">
                       <label className="text-sm font-semibold text-gray-700">Quantity:</label>
                       <div className="flex items-center gap-2">
@@ -478,7 +478,117 @@ export default function Shop() {
                       {adding ? 'Adding...' : 'Add to Cart'}
                     </button>
                   </div>
+
+                  {/* Reviews Section */}
+                  <div className="flex-1 overflow-y-auto border-t pt-4">
+                    <h4 className="text-lg font-semibold text-gray-800 mb-2">
+                      Customer Reviews
+                    </h4>
+
+                    <div className="mb-4">
+                      <p className="text-sm text-gray-600">
+                        ⭐ {getAverageRating(selectedPrint.id)} ({(reviews[selectedPrint.id] || []).length} reviews)
+                      </p>
+                    </div>
+
+                    {/* Review Form */}
+                    {user && (
+                      <div className="bg-gray-50 p-3 rounded-xl mb-4">
+                        <h4 className="font-semibold mb-2 text-sm text-gray-700">Leave a Review</h4>
+                        <div className="flex items-center gap-1 mb-2">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                              key={star}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setNewReview({ ...newReview, rating: star });
+                              }}
+                              className="text-xl cursor-pointer"
+                            >
+                              {star <= newReview.rating ? '⭐' : '☆'}
+                            </button>
+                          ))}
+                        </div>
+                        <textarea
+                          value={newReview.comment}
+                          onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                          onClick={(e) => e.stopPropagation()}
+                          placeholder="Write your review..."
+                          className="w-full p-2 border border-gray-300 text-gray-700 rounded-lg mb-2 resize-none text-sm"
+                          rows={2}
+                        />
+                        <button
+                          onClick={(e) => handleSubmitReview(e, selectedPrint.id)}
+                          className="bg-[#7280A7] text-white hover:bg-[#50608A] px-4 py-2 rounded-lg font-semibold text-sm cursor-pointer"
+                        >
+                          Submit Review
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Reviews List */}
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {(reviews[selectedPrint.id] || []).length === 0 ? (
+                        <p className="text-gray-500 text-sm">No reviews yet. Be the first!</p>
+                      ) : (
+                        (reviews[selectedPrint.id] || []).map((review) => (
+                          <div key={review.id} className="bg-gray-50 p-3 rounded-lg">
+                            <div className="flex justify-between items-start mb-1">
+                              <div>
+                                <p className="font-semibold text-sm text-gray-800">
+                                  {review.users?.username || 'Anonymous'}
+                                </p>
+                                <p className="text-xs text-yellow-500">
+                                  {'⭐'.repeat(review.rating)}
+                                </p>
+                              </div>
+                              <span className="text-xs text-gray-500">
+                                {new Date(review.created_at).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-700">{review.comment}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
                 </div>
+              </div>
+
+              {/* Navigation Arrows */}
+              {prints.length > 1 && (
+                <>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const currentIndex = prints.findIndex(p => p.id === selectedPrint.id);
+                      const prevIndex = (currentIndex - 1 + prints.length) % prints.length;
+                      setSelectedPrint(prints[prevIndex]);
+                      setQuantity(1);
+                    }}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-3 rounded-full shadow-lg cursor-pointer transition"
+                  >
+                    <FaChevronLeft size={24} className="text-gray-800" />
+                  </button>
+                  
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const currentIndex = prints.findIndex(p => p.id === selectedPrint.id);
+                      const nextIndex = (currentIndex + 1) % prints.length;
+                      setSelectedPrint(prints[nextIndex]);
+                      setQuantity(1);
+                    }}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-3 rounded-full shadow-lg cursor-pointer transition"
+                  >
+                    <FaChevronRight size={24} className="text-gray-800" />
+                  </button>
+                </>
+              )}
+
+              {/* Print counter */}
+              <div className="text-center mt-4 text-gray-600 text-sm">
+                {prints.findIndex(p => p.id === selectedPrint.id) + 1} / {prints.length}
               </div>
             </motion.div>
           </motion.div>
