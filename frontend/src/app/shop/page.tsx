@@ -55,6 +55,7 @@ const products: Product[] = [
   { id: 12, name: "Small Hornet Print", price: 10, image: "/images/products/print.png", type: 'print', collection: 'misc', description: "Hornet fanart, 8x10 high-quality print" },
   { id: 13, name: "Large Hornet Print", price: 15, image: "/images/products/print.png", type: 'print', collection: 'misc', description: "Hornet fanart, 11x14 premium print" },
   { id: 14, name: "Blind Pack", price: 10, image: "/images/products/blind.png", type: 'print', collection: 'misc', description: "Take a gamble! Get 5 random prints!" },
+  { id: 15, name: "Custom Design", price: 10, image: "/images/products/design.png", type: 'print', collection: 'misc', description: "Request a design for your brand or marketing!" },
 ];
 
 export default function Shop() {
@@ -375,17 +376,17 @@ export default function Shop() {
                 className="w-full h-auto"
               />
               
-              <div className="absolute inset-0 p-[5%]">
-                <div className="grid grid-rows-2 grid-cols-3 gap-2 h-full mt-[5%]">
+              <div className="absolute inset-0 p-[7%]">
+                <div className="grid grid-rows-4 grid-cols-3 gap-10 h-full mt-[5%]">
                   {prints.map((print) => (
                     <motion.div
                       key={print.id}
-                      className="p-6 shadow-xl cursor-pointer"
+                      className="group w-full h-full p-6 shadow-xl cursor-pointer"
                       onClick={() => setSelectedPrint(print)}
                       whileHover={{ scale: 1.02, y: -4 }}
                     >
                       <div className="flex gap-6">
-                        <div className="w-40 h-50 overflow-hidden border-5 border-gray-300">
+                        <div className="overflow-hidden border-5 border-gray-300">
                           <img
                             src={print.image}
                             alt={print.name}
