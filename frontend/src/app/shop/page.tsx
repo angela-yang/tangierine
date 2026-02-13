@@ -52,12 +52,9 @@ const products: Product[] = [
   { id: 11, name: "Appa Sticker", price: 4, image: "/images/products/appa.png", type: 'sticker', collection: 'misc', description: "Yip yip!" },
   
   // Prints
-  { id: 12, name: "Print — Small", price: 10, image: "/images/products/print.png", type: 'print', collection: 'misc', description: "High-quality 8x10" },
-  { id: 13, name: "Print — Large", price: 15, image: "/images/products/print.png", type: 'print', collection: 'misc', description: "High-quality 11x14" },
-  
-  // Commissions
-  { id: 14, name: "Digital Commission", price: 20, image: "/images/products/commission.png", type: 'commission', collection: 'misc', description: "Custom digital art!" },
-  { id: 15, name: "Blind Pack", price: 15, image: "/images/products/blind.png", type: 'blind-pack', collection: 'misc', description: "Mystery item!" },
+  { id: 12, name: "Small Hornet Print", price: 10, image: "/images/products/print.png", type: 'print', collection: 'misc', description: "Hornet fanart, 8x10 high-quality print" },
+  { id: 13, name: "Large Hornet Print", price: 15, image: "/images/products/print.png", type: 'print', collection: 'misc', description: "Hornet fanart, 11x14 premium print" },
+  { id: 14, name: "Blind Pack", price: 10, image: "/images/products/blind.png", type: 'print', collection: 'misc', description: "Take a gamble! Get 5 random prints!" },
 ];
 
 export default function Shop() {
@@ -71,6 +68,7 @@ export default function Shop() {
   const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
   const [adding, setAdding] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const [selectedPrint, setSelectedPrint] = useState<Product | null>(null);
   
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -84,12 +82,10 @@ export default function Shop() {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
-  // Fetch all reviews on mount
   useEffect(() => {
     fetchAllReviews();
   }, []);
 
-  // Keyboard nav
   useEffect(() => {
     if (!viewingStack) return;
 
@@ -117,10 +113,7 @@ export default function Shop() {
   const fetchAllReviews = async () => {
     const { data } = await supabase
       .from('reviews')
-      .select(`
-        *,
-        users (username)
-      `)
+      .select(`*,users (username)`)
       .order('created_at', { ascending: false });
     
     if (data) {
@@ -136,7 +129,7 @@ export default function Shop() {
   };
 
   const handleAddToCart = async (e: React.MouseEvent, product: Product) => {
-    e.stopPropagation(); // Prevent card flip
+    e.stopPropagation();
     
     if (!user) {
       alert('Please log in to add items to cart');
@@ -176,7 +169,7 @@ export default function Shop() {
       }
 
       alert('Added to cart!');
-      setQuantity(1); // Reset quantity
+      setQuantity(1);
     } catch (err: any) {
       console.error('Cart error:', err);
       alert('Failed to add to cart');
@@ -186,7 +179,7 @@ export default function Shop() {
   };
 
   const handleSubmitReview = async (e: React.MouseEvent, productId: number) => {
-    e.stopPropagation(); // Prevent card flip
+    e.stopPropagation();
     
     if (!user) {
       alert('Please log in to leave a review');
@@ -226,16 +219,24 @@ export default function Shop() {
     return avg.toFixed(1);
   };
 
-  const filteredProducts = selectedCollection === 'all' 
-    ? products 
-    : products.filter(p => p.collection === selectedCollection);
+  const stickers = products.filter(p => p.type === 'sticker');
+  const prints = products.filter(p => p.type === 'print');
+  
+  const filteredStickers = selectedCollection === 'all' 
+    ? stickers 
+    : stickers.filter(p => p.collection === selectedCollection);
 
-  const groupedProducts = filteredProducts.reduce((acc, product) => {
+  const groupedStickers = filteredStickers.reduce((acc, product) => {
     const key = product.collection;
     if (!acc[key]) acc[key] = [];
     acc[key].push(product);
     return acc;
   }, {} as Record<string, Product[]>);
+
+  const gridRows = 4;
+  const gridCols = 5;
+  const totalSlots = gridRows * gridCols;
+  const gridStickers = filteredStickers.slice(0, totalSlots);
 
   const openStack = (stack: Product[], clickedProduct: Product) => {
     const startIndex = stack.findIndex(p => p.id === clickedProduct.id);
@@ -254,7 +255,6 @@ export default function Shop() {
 
   const nextCard = () => {
     if (viewingStack) {
-      // Loop back to beginning
       setCurrentCardIndex(prev => (prev + 1) % viewingStack.length);
       setIsFlipped(false);
     }
@@ -262,7 +262,6 @@ export default function Shop() {
 
   const prevCard = () => {
     if (viewingStack) {
-      // Loop to end
       setCurrentCardIndex(prev => (prev - 1 + viewingStack.length) % viewingStack.length);
       setIsFlipped(false);
     }
@@ -299,7 +298,7 @@ export default function Shop() {
         />
       </div>
       
-      <div className="max-w-7xl mx-auto px-6 py-14 pt-[90px] relative z-20">
+      <div className="max-w-[95vw] mx-auto px-6 py-14 pt-[90px] relative z-20">
         <div className="text-center mb-8">
           <h1 className="text-5xl font-bold text-gray-100 mb-3">Vendor Booth</h1>
           <p className="text-gray-200/80 text-xl">Browse our collections ✿</p>
@@ -307,77 +306,183 @@ export default function Shop() {
 
         {/* Filters */}
         <div className="flex flex-wrap justify-center gap-3 mb-12">
-          <button onClick={() => setSelectedCollection('all')} className={`bg-[#6F81AA] hover:bg-[#D16280] transition-all transform hover:scale-105 cursor-pointer rounded-full p-1 px-3 filter-btn ${selectedCollection === 'all' ? 'active' : ''}`}>All Collections</button>
+          <button onClick={() => setSelectedCollection('all')} className={`bg-[#6F81AA] hover:bg-[#D16280] transition-all transform hover:scale-105 cursor-pointer rounded-full p-1 px-3 filter-btn ${selectedCollection === 'all' ? 'active' : ''}`}>All</button>
           <button onClick={() => setSelectedCollection('pokemon')} className={`bg-[#6F81AA] hover:bg-[#D16280] transition-all transform hover:scale-105 cursor-pointer rounded-full p-1 px-3 filter-btn ${selectedCollection === 'pokemon' ? 'active' : ''}`}>Pokémon</button>
           <button onClick={() => setSelectedCollection('pikmin')} className={`bg-[#6F81AA] hover:bg-[#D16280] transition-all transform hover:scale-105 cursor-pointer rounded-full p-1 px-3 filter-btn ${selectedCollection === 'pikmin' ? 'active' : ''}`}>Pikmin</button>
           <button onClick={() => setSelectedCollection('smiski')} className={`bg-[#6F81AA] hover:bg-[#D16280] transition-all transform hover:scale-105 cursor-pointer rounded-full p-1 px-3 filter-btn ${selectedCollection === 'smiski' ? 'active' : ''}`}>Smiski</button>
           <button onClick={() => setSelectedCollection('misc')} className={`bg-[#6F81AA] hover:bg-[#D16280] transition-all transform hover:scale-105 cursor-pointer rounded-full p-1 px-3 filter-btn ${selectedCollection === 'misc' ? 'active' : ''}`}>Misc</button>
         </div>
 
-        {/* Shelves */}
-        <div className="space-y-12">
-          {Object.entries(groupedProducts).map(([collectionName, collectionProducts]) => (
-            <div key={collectionName}>
-              <div className="relative bg-[#C88261] rounded-lg p-8 border-8 border-[#975736]">
-                <div className="flex justify-center mb-6">
-                  <div className="bg-[#F1EBE3] border-2 border-[#915E35] px-8 py-3 shadow-lg">
-                    <h2 className="text-2xl font-bold text-gray-800 capitalize">
-                      {collectionName} Collection
-                    </h2>
-                  </div>
-                </div>
-
-                <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-16 bg-gradient-to-r from-gray-600 to-gray-400 rounded-r-lg shadow-lg"></div>
-                <div className="absolute -right-4 top-1/2 -translate-y-1/2 w-8 h-16 bg-gradient-to-l from-gray-600 to-gray-400 rounded-l-lg shadow-lg"></div>
-
-                <div className="relative z-10 flex flex-wrap justify-center gap-6 px-4">
-                  {collectionProducts.map((product, index) => (
-                    <motion.div
-                      key={product.id}
-                      className="group cursor-pointer relative"
-                      onClick={() => openStack(collectionProducts, product)}
-                      whileHover={{ y: -12, scale: 1.05 }}
-                      transition={{ type: "spring", stiffness: 300 }}
-                      style={{
-                        transform: `rotate(${(index - collectionProducts.length / 2) * 3}deg)`
-                      }}
-                    >
-                      <div className="w-32 h-32 flex items-center justify-center">
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="max-w-full max-h-full object-contain"
-                        />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          
+          {/* LEFT: Stickers */}
+          <div className="relative">
+            <h2 className="text-3xl font-bold text-white mb-6 text-center">Stickers</h2>
+            <div className="relative">
+              <img 
+                src="/images/display.png"
+                alt="Vendor Shelf"
+                className="w-full h-auto"
+              />
+              
+              <div className="absolute inset-0 p-[4%]">
+                <div className="grid grid-rows-4 grid-cols-5 gap-2 h-full mt-[20%]">
+                  {Array.from({ length: totalSlots }).map((_, index) => {
+                    const sticker = gridStickers[index];
+                    const row = Math.floor(index / gridCols);
+                    const collection = Object.keys(groupedStickers)[row];
+                    
+                    return (
+                      <div key={index} className="relative flex items-center justify-center">
+                        {sticker ? (
+                          <motion.div
+                            className="group cursor-pointer w-full h-full flex items-center justify-center"
+                            onClick={() => openStack(groupedStickers[sticker.collection], sticker)}
+                            whileHover={{ scale: 1.1, y: -4 }}
+                            transition={{ type: "spring", stiffness: 300 }}
+                          >
+                            <img
+                              src={sticker.image}
+                              alt={sticker.name}
+                              className="max-w-full max-h-full object-contain drop-shadow-md"
+                            />
+                            
+                            <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition pointer-events-none z-10">
+                              <div className="bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+                                {sticker.name}
+                              </div>
+                            </div>
+                          </motion.div>
+                        ) : (
+                          <div className="w-full h-full"></div>
+                        )}
+                        
                       </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
 
-                      <div className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition pointer-events-none">
-                        <div className="bg-gray-900 text-white text-xs px-3 py-1 rounded-full whitespace-nowrap">
-                          {product.name}
+          {/* RIGHT: Prints */}
+          <div className="relative">
+            <h2 className="text-3xl font-bold text-white mb-6 text-center">Prints</h2>
+            <div className="relative">
+              <img 
+                src="/images/grid2.png"
+                alt="Print Display"
+                className="w-full h-auto"
+              />
+              
+              <div className="absolute inset-0 p-[5%]">
+                <div className="grid grid-rows-2 grid-cols-3 gap-2 h-full mt-[5%]">
+                  {prints.map((print) => (
+                    <motion.div
+                      key={print.id}
+                      className="p-6 shadow-xl cursor-pointer"
+                      onClick={() => setSelectedPrint(print)}
+                      whileHover={{ scale: 1.02, y: -4 }}
+                    >
+                      <div className="flex gap-6">
+                        <div className="w-40 h-50 overflow-hidden border-5 border-gray-300">
+                          <img
+                            src={print.image}
+                            alt={print.name}
+                            className="w-full h-full object-cover"
+                          />
+
+                          <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition pointer-events-none z-10">
+                            <div className="bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+                              {print.name}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </motion.div>
                   ))}
                 </div>
-
-                <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center">
-                  <div className="w-px h-6 bg-gray-400"></div>
-                  <div className="bg-yellow-100 border-2 border-yellow-600 px-6 py-2 rounded-md shadow-md">
-                    <p className="text-sm font-bold text-gray-800 text-center">
-                      {collectionProducts.length} Items
-                    </p>
-                    <p className="text-xs text-gray-600 text-center">
-                      ${collectionProducts[0].price} each
-                    </p>
-                  </div>
-                </div>
               </div>
             </div>
-          ))}
+          </div>
         </div>
 
         <ShopItem label="Lights" imgSrc="/images/light1.png" width={50} positionX={30} positionY={8} offsetX={offset.x} offsetY={offset.y} depthX={1.0} depthY={1.0}/>
         <ShopItem label="Light" imgSrc="/images/light2.png" width={50} positionX={85} positionY={5} offsetX={offset.x} offsetY={offset.y} depthX={1.0} depthY={1.0}/>
       </div>
+
+      {/* Prints Pop-up */}
+      <AnimatePresence>
+        {selectedPrint && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] flex items-center justify-center p-4"
+            onClick={() => setSelectedPrint(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.8 }}
+              className="bg-white rounded-3xl p-8 max-w-2xl w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setSelectedPrint(null)}
+                className="float-right text-gray-500 hover:text-gray-700 text-3xl cursor-pointer"
+              >
+                ✕
+              </button>
+              
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="bg-gray-100 rounded-2xl p-4 aspect-square flex items-center justify-center">
+                  <img
+                    src={selectedPrint.image}
+                    alt={selectedPrint.name}
+                    className="max-w-full max-h-full object-contain"
+                  />
+                </div>
+                
+                <div>
+                  <h3 className="text-3xl font-bold text-gray-800 mb-4">{selectedPrint.name}</h3>
+                  <p className="text-gray-600 mb-4">{selectedPrint.description}</p>
+                  <p className="text-4xl font-bold text-[#7280A7] mb-6">${selectedPrint.price}</p>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <label className="text-sm font-semibold text-gray-700">Quantity:</label>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                          className="w-8 h-8 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-bold cursor-pointer"
+                        >
+                          −
+                        </button>
+                        <span className="w-12 text-center font-semibold text-gray-800">{quantity}</span>
+                        <button
+                          onClick={() => setQuantity(quantity + 1)}
+                          className="w-8 h-8 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-bold cursor-pointer"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={(e) => handleAddToCart(e, selectedPrint)}
+                      disabled={adding}
+                      className="w-full bg-[#7280A7] hover:bg-[#50608A] text-white font-bold py-3 rounded-full transition disabled:opacity-50 cursor-pointer"
+                    >
+                      {adding ? 'Adding...' : 'Add to Cart'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Card Stack Viewer */}
       <AnimatePresence>
